@@ -41,6 +41,7 @@ See [Snapshot And Restore](https://www.elastic.co/guide/en/elasticsearch/referen
 | swift_password                      | Swift password
 | swift_tenantname                    | Swift tenant name, only used with keystone auth
 | swift_username                      | Swift username
+| swift_preferred_region              | Region to use.  If you do not specify a region, Swift will pick the endpoint of the first region.  If you have multiple regions, the order is not guarenteed.
 | chunk_size                          | Maximum size for individual objects in the snapshot. Defaults to `5gb` as that's the Swift default
 | compress                            | Turns on compression of the snapshot files. Defaults to `false` as it tends to break with Swift
 | max_restore_bytes_per_sec           | Throttles per node restore rate. Defaults to `20mb` per second.
