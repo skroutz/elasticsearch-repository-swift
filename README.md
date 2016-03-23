@@ -1,7 +1,7 @@
 Swift repository plugin for Elasticsearch
 =========================================
 
-In order to install the plugin, simply run: `bin/plugin -install org.wikimedia.elasticsearch.swift/swift-repository-plugin/<version>`.
+In order to install the plugin, simply run: `bin/plugin install org.wikimedia.elasticsearch.swift/swift-repository-plugin/<version>`.
 
 |      Swift Plugin           | elasticsearch         | Release date |
 |-----------------------------|-----------------------|:------------:|
