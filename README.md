@@ -10,6 +10,7 @@ In order to install the plugin, simply run: `bin/plugin -install org.wikimedia.e
 | 0.7                         | 1.4.0                 | 2014-11-07   |
 | 1.6.0                       | 1.6.0                 | 2015-06-09   |
 | 1.7.0                       | 1.7.0                 | 2015-07-20   |
+| 2.1.1                       | 2.1.1                 | 2016-05-12   |
 
 Only the versions in the table above should be used. The in-between releases
 were buggy and are not recommended.
@@ -27,7 +28,7 @@ were buggy and are not recommended.
     }'
 ```
 
-See [Snapshot And Restore](http://www.elasticsearch.org/guide/en/elasticsearch/reference/1.x/modules-snapshots.html) for more information
+See [Snapshot And Restore](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html) for more information
 
 
 ## Settings

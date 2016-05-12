@@ -24,13 +24,12 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
     /**
      * Constructor. Sets up the container mostly.
      * @param settings Settings for our repository. Only care about buffer size.
-     * @param auth
-     * @param container
+     * @param auth swift account info
+     * @param container swift container
      */
     public SwiftBlobStore(Settings settings, Account auth, String container) {
         super(settings);
         this.bufferSizeInBytes = (int)settings.getAsBytesSize("buffer_size", new ByteSizeValue(100, ByteSizeUnit.KB)).bytes();
-
         swift = auth.getContainer(container);
         if (!swift.exists()) {
             swift.create();
@@ -38,15 +37,26 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
         }
     }
 
+    public boolean moveBlobStorage(String sourceblob,String destinationblob){
+        StoredObject sourceObject = swift.getObject(sourceblob);
+        if(sourceObject.exists()) {
+           StoredObject newObject = swift.getObject(destinationblob);
+           sourceObject.copyObject(swift, newObject);
+           sourceObject.delete();
+           return true;
+        }
+        return false;
+    }
+
     /**
-     * Get the container
+     * @return the container
      */
     public Container swift() {
         return swift;
     }
 
     /**
-     * Get our buffer size
+     * @return buffer size
      */
     public int bufferSizeInBytes() {
         return bufferSizeInBytes;

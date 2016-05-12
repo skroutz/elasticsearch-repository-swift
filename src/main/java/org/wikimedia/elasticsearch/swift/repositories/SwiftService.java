@@ -1,7 +1,6 @@
 package org.wikimedia.elasticsearch.swift.repositories;
 
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.ElasticsearchIllegalArgumentException;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
@@ -35,6 +34,7 @@ public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
      *            The username
      * @param password
      *            The password
+     * @return swift Account
      */
     public synchronized Account swiftBasic(String url, String username, String password) {
         if (swiftUser != null) {
@@ -45,7 +45,7 @@ public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
             AccountConfig conf = getStandardConfig(url, username, password, AuthenticationMethod.BASIC);
             swiftUser = new AccountFactory(conf).createAccount();
         } catch (CommandException ce) {
-            throw new ElasticsearchIllegalArgumentException("Unable to authenticate to Swift Basic " + url + "/" + username + "/" + password, ce);
+            throw new ElasticsearchException("Unable to authenticate to Swift Basic " + url + "/" + username + "/" + password, ce);
         }
         return swiftUser;
     }
@@ -60,7 +60,7 @@ public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
             conf.setTenantName(tenantName);
             swiftUser = new AccountFactory(conf).createAccount();
         } catch (CommandException ce) {
-            throw new ElasticsearchIllegalArgumentException(
+            throw new ElasticsearchException(
                     "Unable to authenticate to Swift Keystone " + url + "/" + username + "/" + password + "/" + tenantName, ce);
         }
         return swiftUser;
@@ -75,7 +75,7 @@ public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
             AccountConfig conf = getStandardConfig(url, username, password, AuthenticationMethod.TEMPAUTH);
             swiftUser = new AccountFactory(conf).createAccount();
         } catch (CommandException ce) {
-            throw new ElasticsearchIllegalArgumentException("Unable to authenticate to Swift Temp", ce);
+            throw new ElasticsearchException("Unable to authenticate to Swift Temp", ce);
         }
         return swiftUser;
     }

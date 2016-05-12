@@ -45,7 +45,7 @@ public class SwiftRepository extends BlobStoreRepository {
      *            an instance of SwiftService
      */
     @Inject
-    protected SwiftRepository(RepositoryName name, RepositorySettings repositorySettings, IndexShardRepository indexShardRepository, SwiftService swiftService) {
+    public SwiftRepository(RepositoryName name, RepositorySettings repositorySettings, IndexShardRepository indexShardRepository, SwiftService swiftService) {
         super(name.getName(), repositorySettings, indexShardRepository);
 
         String url = repositorySettings.settings().get("swift_url");
@@ -65,10 +65,10 @@ public class SwiftRepository extends BlobStoreRepository {
         Account account = SwiftAccountFactory.createAccount(swiftService, url, username, password, tenantName, authMethod);
 
         blobStore = new SwiftBlobStore(settings, account, container);
-
         this.chunkSize = repositorySettings.settings().getAsBytesSize("chunk_size",
-                componentSettings.getAsBytesSize("chunk_size", new ByteSizeValue(5, ByteSizeUnit.GB)));
-        this.compress = repositorySettings.settings().getAsBoolean("compress", componentSettings.getAsBoolean("compress", false));
+                settings.getAsBytesSize("chunk_size", new ByteSizeValue(5, ByteSizeUnit.GB)));
+        this.compress = repositorySettings.settings().getAsBoolean("compress",
+                settings.getAsBoolean("compress", false));
         this.basePath = BlobPath.cleanPath();
     }
 

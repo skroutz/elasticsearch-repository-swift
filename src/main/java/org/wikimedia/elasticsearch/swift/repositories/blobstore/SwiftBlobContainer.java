@@ -5,17 +5,17 @@ import org.elasticsearch.common.blobstore.BlobMetaData;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
-import org.elasticsearch.common.collect.ImmutableMap;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.Collection;
 
 /**
@@ -56,17 +56,17 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * @param blobName A blob to delete
      */
     @Override
-    public boolean deleteBlob(String blobName) throws IOException {
+    public void deleteBlob(String blobName) throws IOException {
         StoredObject object = blobStore.swift().getObject(buildKey(blobName));
         if (object.exists()) {
             object.delete();
         }
-        return true;
     }
 
     /**
      * Get the blobs matching a given prefix
      * @param blobNamePrefix The prefix to look for blobs with
+     * @return blobs metadata
      */
     @Override
     public ImmutableMap<String, BlobMetaData> listBlobsByPrefix(@Nullable String blobNamePrefix) throws IOException {
@@ -101,48 +101,44 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     /**
      * Build a key for a blob name, based on the keyPath
      * @param blobName The blob name to build a key for
+     * @return the key
      */
     protected String buildKey(String blobName) {
         return keyPath + blobName;
     }
 
+    @Override
+    public void move(String sourceBlobname, String destinationBlobname) throws IOException {
+
+        String source = buildKey(sourceBlobname);
+        String target = buildKey(destinationBlobname);
+        if (blobExists(sourceBlobname)) {
+            blobStore.moveBlobStorage(source, target);
+        }
+    }
+
     /**
      * Fetch a given blob into a BufferedInputStream
      * @param blobName The blob name to read
+     * @return a stream
      */
     @Override
-    public InputStream openInput(String blobName) throws IOException {
-        return new BufferedInputStream(
-            blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
+    public InputStream readBlob(String blobName) throws IOException {
+        return new BufferedInputStream(blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
                 blobStore.bufferSizeInBytes());
     }
 
     @Override
-    public OutputStream createOutput(final String blobName) throws IOException {
-       // need to remove old file if already exist
-       deleteBlob(blobName);
+    public void writeBlob(String blobName, final BytesReference bytes) throws IOException {
+        // need to remove old file if already exist
+        deleteBlob(blobName);
+        blobStore.swift().getObject(buildKey(blobName)).uploadObject(new ByteArrayInputStream(bytes.array(), bytes.arrayOffset(), bytes.length()));
+    }
 
-       final PipedInputStream in = new PipedInputStream();
-
-       // We'll need to store this thread and make sure it terminates when the output stream is closed.
-       final Thread transport = new Thread(new Runnable(){
-          public void run(){
-              blobStore.swift().getObject(buildKey(blobName)).uploadObject(in);
-          }
-       });
-       transport.start();
-
-       return new PipedOutputStream(in) {
-           @Override
-           public void close() throws IOException {
-               try {
-                   // Close output, close the thread
-                   super.close();
-                   transport.join();
-               } catch(InterruptedException e) {
-                   throw new IOException("Swift input/output shenanigans.", e);
-               }
-           }
-       };
+    @Override
+    public void writeBlob(String blobName, InputStream in, long blobSize) throws IOException {
+        // need to remove old file if already exist
+        deleteBlob(blobName);
+        blobStore.swift().getObject(buildKey(blobName)).uploadObject(in);
     }
 }

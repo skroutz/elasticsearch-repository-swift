@@ -1,20 +1,20 @@
 package org.wikimedia.elasticsearch.swift;
 
-import org.elasticsearch.common.collect.Lists;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.plugins.AbstractPlugin;
+import org.elasticsearch.index.snapshots.blobstore.BlobStoreIndexShardRepository;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.repositories.RepositoriesModule;
 import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
-import org.wikimedia.elasticsearch.swift.repositories.SwiftRepositoryModule;
 import org.wikimedia.elasticsearch.swift.repositories.SwiftService;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Our base plugin stuff.
  */
-public class SwiftRepositoryPlugin extends AbstractPlugin {
+public class SwiftRepositoryPlugin extends Plugin  {
     // Elasticsearch settings
     private final Settings settings;
 
@@ -45,14 +45,11 @@ public class SwiftRepositoryPlugin extends AbstractPlugin {
     /**
      * Register our services, if needed.
      */
-    @Override
+
     @SuppressWarnings("rawtypes")
-    public Collection<Class<? extends LifecycleComponent>> services() {
-        Collection<Class<? extends LifecycleComponent>> services = Lists.newArrayList();
-        if (settings.getAsBoolean("swift.repository.enabled", true)) {
-            services.add(SwiftService.class);
-        }
-        return services;
+    @Override
+    public Collection<Class<? extends LifecycleComponent>> nodeServices() {
+        return Collections.<Class<? extends LifecycleComponent>>singleton(SwiftService.class);
     }
 
     /**
@@ -61,7 +58,7 @@ public class SwiftRepositoryPlugin extends AbstractPlugin {
      */
     public void onModule(RepositoriesModule repositoriesModule) {
         if (settings.getAsBoolean("swift.repository.enabled", true)) {
-            repositoriesModule.registerRepository(SwiftRepository.TYPE, SwiftRepositoryModule.class);
+            repositoriesModule.registerRepository(SwiftRepository.TYPE, SwiftRepository.class, BlobStoreIndexShardRepository.class);
         }
     }
 }
