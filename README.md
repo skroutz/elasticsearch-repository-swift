@@ -39,7 +39,7 @@ See [Snapshot And Restore](https://www.elastic.co/guide/en/elasticsearch/referen
 | swift_url                           | Swift auth url. **Mandatory**
 | swift_authmethod                    | Swift auth method, one of "KEYSTONE" "TEMPAUTH" or "" for basic auth
 | swift_password                      | Swift password
-| swift_tenant                        | Swift tenant name, only used with keystone auth
+| swift_tenantname                    | Swift tenant name, only used with keystone auth
 | swift_username                      | Swift username
 | chunk_size                          | Maximum size for individual objects in the snapshot. Defaults to `5gb` as that's the Swift default
 | compress                            | Turns on compression of the snapshot files. Defaults to `false` as it tends to break with Swift
