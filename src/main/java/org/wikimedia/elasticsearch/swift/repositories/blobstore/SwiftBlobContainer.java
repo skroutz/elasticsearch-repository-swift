@@ -9,6 +9,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
+import org.wikimedia.elasticsearch.swift.SwiftPerms;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -16,6 +17,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.PrivilegedAction;
 import java.util.Collection;
 
 /**
@@ -47,8 +49,13 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * Does a blob exist? Self-explanatory.
      */
     @Override
-    public boolean blobExists(String blobName) {
-        return blobStore.swift().getObject(buildKey(blobName)).exists();
+    public boolean blobExists(final String blobName) {
+        return SwiftPerms.exec(new PrivilegedAction<Boolean>() {
+                @Override
+                public Boolean run() {
+                    return blobStore.swift().getObject(buildKey(blobName)).exists();
+                }
+        });
     }
 
     /**
@@ -56,11 +63,17 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * @param blobName A blob to delete
      */
     @Override
-    public void deleteBlob(String blobName) throws IOException {
-        StoredObject object = blobStore.swift().getObject(buildKey(blobName));
-        if (object.exists()) {
-            object.delete();
-        }
+    public void deleteBlob(final String blobName) throws IOException {
+        SwiftPerms.exec(new PrivilegedAction<Void>() {
+            @Override
+            public Void run() {
+                StoredObject object = blobStore.swift().getObject(buildKey(blobName));
+                if (object.exists()) {
+                    object.delete();
+                }
+                return null;
+            }
+        });
     }
 
     /**
@@ -69,32 +82,35 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * @return blobs metadata
      */
     @Override
-    public ImmutableMap<String, BlobMetaData> listBlobsByPrefix(@Nullable String blobNamePrefix) throws IOException {
-        ImmutableMap.Builder<String, BlobMetaData> blobsBuilder = ImmutableMap.builder();
-
-        Collection<DirectoryOrObject> files;
-        if (blobNamePrefix != null) {
-            files = blobStore.swift().listDirectory(new Directory(buildKey(blobNamePrefix), '/'));
-        } else {
-            files = blobStore.swift().listDirectory(new Directory(keyPath, '/'));
-        }
-        if (files != null && !files.isEmpty()) {
-            for (DirectoryOrObject object : files) {
-                if (object.isObject()) {
-                    String name = object.getName().substring(keyPath.length());
-                    blobsBuilder.put(name, new PlainBlobMetaData(name, object.getAsObject().getContentLength()));
+    public ImmutableMap<String, BlobMetaData> listBlobsByPrefix(@Nullable final String blobNamePrefix) {
+        return SwiftPerms.exec(new PrivilegedAction<ImmutableMap<String, BlobMetaData>>() {
+            @Override
+            public ImmutableMap<String, BlobMetaData> run() {
+                ImmutableMap.Builder<String, BlobMetaData> blobsBuilder = ImmutableMap.builder();
+                Collection<DirectoryOrObject> files;
+                if (blobNamePrefix != null) {
+                    files = blobStore.swift().listDirectory(new Directory(buildKey(blobNamePrefix), '/'));
+                } else {
+                    files = blobStore.swift().listDirectory(new Directory(keyPath, '/'));
                 }
+                if (files != null && !files.isEmpty()) {
+                    for (DirectoryOrObject object : files) {
+                        if (object.isObject()) {
+                            String name = object.getName().substring(keyPath.length());
+                            blobsBuilder.put(name, new PlainBlobMetaData(name, object.getAsObject().getContentLength()));
+                        }
+                    }
+                }
+                return blobsBuilder.build();
             }
-        }
-
-        return blobsBuilder.build();
+        });
     }
 
     /**
      * Get all the blobs
      */
     @Override
-    public ImmutableMap<String, BlobMetaData> listBlobs() throws IOException {
+    public ImmutableMap<String, BlobMetaData> listBlobs() {
         return listBlobsByPrefix(null);
     }
 
@@ -123,22 +139,39 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * @return a stream
      */
     @Override
-    public InputStream readBlob(String blobName) throws IOException {
-        return new BufferedInputStream(blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
-                blobStore.bufferSizeInBytes());
+    public InputStream readBlob(final String blobName) throws IOException {
+        return SwiftPerms.exec(new PrivilegedAction<InputStream>() {
+            @Override
+            public InputStream run() {
+                return new BufferedInputStream(blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
+                        blobStore.bufferSizeInBytes());
+            }
+        });
     }
 
     @Override
-    public void writeBlob(String blobName, final BytesReference bytes) throws IOException {
+    public void writeBlob(final String blobName, final BytesReference bytes) throws IOException {
         // need to remove old file if already exist
         deleteBlob(blobName);
-        blobStore.swift().getObject(buildKey(blobName)).uploadObject(new ByteArrayInputStream(bytes.array(), bytes.arrayOffset(), bytes.length()));
+        SwiftPerms.exec(new PrivilegedAction<Void>() {
+            @Override
+            public Void run() {
+                blobStore.swift().getObject(buildKey(blobName)).uploadObject(new ByteArrayInputStream(bytes.array(), bytes.arrayOffset(), bytes.length()));
+                return null;
+            }
+        });
     }
 
     @Override
-    public void writeBlob(String blobName, InputStream in, long blobSize) throws IOException {
+    public void writeBlob(final String blobName, final InputStream in, final long blobSize) throws IOException {
         // need to remove old file if already exist
         deleteBlob(blobName);
-        blobStore.swift().getObject(buildKey(blobName)).uploadObject(in);
+        SwiftPerms.exec(new PrivilegedAction<Void>() {
+            @Override
+            public Void run() {
+                blobStore.swift().getObject(buildKey(blobName)).uploadObject(in);
+                return null;
+            }
+        });
     }
 }

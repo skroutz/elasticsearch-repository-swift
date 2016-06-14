@@ -1,5 +1,7 @@
 package org.wikimedia.elasticsearch.swift.repositories;
 
+import java.security.PrivilegedAction;
+
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
@@ -9,6 +11,7 @@ import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
 import org.javaswift.joss.exception.CommandException;
 import org.javaswift.joss.model.Account;
+import org.wikimedia.elasticsearch.swift.SwiftPerms;
 
 public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
     // The account we'll be connecting to Swift with
@@ -43,11 +46,20 @@ public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
 
         try {
             AccountConfig conf = getStandardConfig(url, username, password, AuthenticationMethod.BASIC);
-            swiftUser = new AccountFactory(conf).createAccount();
+            swiftUser = createAccount(conf);
         } catch (CommandException ce) {
             throw new ElasticsearchException("Unable to authenticate to Swift Basic " + url + "/" + username + "/" + password, ce);
         }
         return swiftUser;
+    }
+
+    private Account createAccount(final AccountConfig conf) {
+        return SwiftPerms.exec(new PrivilegedAction<Account>() {
+            @Override
+            public Account run() {
+                return new AccountFactory(conf).createAccount();
+            }
+        });
     }
 
     public synchronized Account swiftKeyStone(String url, String username, String password, String tenantName) {
@@ -58,7 +70,7 @@ public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
         try {
             AccountConfig conf = getStandardConfig(url, username, password, AuthenticationMethod.KEYSTONE);
             conf.setTenantName(tenantName);
-            swiftUser = new AccountFactory(conf).createAccount();
+            swiftUser = createAccount(conf);
         } catch (CommandException ce) {
             throw new ElasticsearchException(
                     "Unable to authenticate to Swift Keystone " + url + "/" + username + "/" + password + "/" + tenantName, ce);
@@ -73,7 +85,7 @@ public class SwiftService extends AbstractLifecycleComponent<SwiftService> {
 
         try {
             AccountConfig conf = getStandardConfig(url, username, password, AuthenticationMethod.TEMPAUTH);
-            swiftUser = new AccountFactory(conf).createAccount();
+            swiftUser = createAccount(conf);
         } catch (CommandException ce) {
             throw new ElasticsearchException("Unable to authenticate to Swift Temp", ce);
         }
