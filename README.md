@@ -17,6 +17,7 @@ In order to install the plugin, simply run: `bin/plugin install org.wikimedia.el
 | 1.7.0                       | 1.7.0                 | 2015-07-20   |
 | 2.1.1                       | 2.1.1                 | 2016-05-12   |
 | 2.3.3.1                     | 2.3.3                 | 2016-06-27   |
+| 2.3.4                       | 2.3.4                 | 2016-08-03   |
 
 Only the versions in the table above should be used. The in-between releases
 were buggy and are not recommended.
