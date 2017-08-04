@@ -1,0 +1,52 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "org.elasticsearch.gradle:build-tools:5.4.0"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'elasticsearch.esplugin'
+apply plugin: 'idea'
+apply plugin: 'maven'
+
+// https://raw.githubusercontent.com/elastic/elasticsearch/v5.0.0/buildSrc/version.properties
+def elasticsearchVersion = '5.4.0'
+def luceneVersion = '6.5.0'
+
+group = 'org.wikimedia.elasticsearch.swift'
+version = '3.0.0-es' + elasticsearchVersion
+description = """elasticsearch-repository-swift"""
+
+esplugin {
+    name 'repository-swift'
+    version rootProject.version
+    description 'Swift repository plugin for Elasticsearch'
+    classname 'org.wikimedia.elasticsearch.swift.SwiftRepositoryPlugin'
+    licenseFile rootProject.file('LICENSE.md')
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+configurations.all {
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+dependencies {
+    compile group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearchVersion
+    compile group: 'org.javaswift', name: 'joss', version:'0.9.12'
+//    compile group: 'log4j', name: 'log4j', version:'1.2.17'
+//    testCompile group: 'com.carrotsearch.randomizedtesting', name: 'randomizedtesting-runner', version:'2.1.2'
+//    compileOnly group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.7.2'
+    compileOnly group: 'com.google.guava', name: 'guava', version:'19.0'
+}
