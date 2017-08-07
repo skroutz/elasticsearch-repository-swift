@@ -30,6 +30,7 @@ import org.wikimedia.elasticsearch.swift.SwiftPerms;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.NoSuchFileException;
 import java.security.PrivilegedAction;
 import java.util.Collection;
 
@@ -150,13 +151,19 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      */
     @Override
     public InputStream readBlob(final String blobName) throws IOException {
-        return SwiftPerms.exec(new PrivilegedAction<InputStream>() {
+        final InputStream is = SwiftPerms.exec(new PrivilegedAction<InputStream>() {
             @Override
             public InputStream run() {
                 return new BufferedInputStream(blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
                         blobStore.bufferSizeInBytes());
             }
         });
+
+        if (null == is) {
+            throw new NoSuchFileException("Blob object [" + blobName + "] not found.");
+        }
+
+        return is;
     }
 
     @Override
