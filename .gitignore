@@ -1,7 +1,10 @@
+.idea/
+.gradle/
 .classpath
 .project
 .settings/
 target/
+build/
 data/
 bin/
 pom.xml.releaseBackup
