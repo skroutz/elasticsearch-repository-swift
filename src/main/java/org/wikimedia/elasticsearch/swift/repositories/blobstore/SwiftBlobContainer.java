@@ -1,20 +1,33 @@
+/*
+ * Copyright 2017 Wikimedia and BigData Boutique
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.wikimedia.elasticsearch.swift.repositories.blobstore;
 
+import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.blobstore.BlobMetaData;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
-import org.elasticsearch.common.bytes.BytesReference;
 import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
 import org.wikimedia.elasticsearch.swift.SwiftPerms;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.PrivilegedAction;
@@ -38,8 +51,8 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     protected SwiftBlobContainer(BlobPath path, SwiftBlobStore blobStore) {
         super(path);
         this.blobStore = blobStore;
-        String keyPath = path.buildAsString("/");
-        if (!keyPath.isEmpty()) {
+        String keyPath = path.buildAsString();
+        if (!keyPath.isEmpty() && !keyPath.endsWith("/")) {
             keyPath = keyPath + "/";
         }
         this.keyPath = keyPath;
@@ -83,26 +96,23 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      */
     @Override
     public ImmutableMap<String, BlobMetaData> listBlobsByPrefix(@Nullable final String blobNamePrefix) {
-        return SwiftPerms.exec(new PrivilegedAction<ImmutableMap<String, BlobMetaData>>() {
-            @Override
-            public ImmutableMap<String, BlobMetaData> run() {
-                ImmutableMap.Builder<String, BlobMetaData> blobsBuilder = ImmutableMap.builder();
-                Collection<DirectoryOrObject> files;
-                if (blobNamePrefix != null) {
-                    files = blobStore.swift().listDirectory(new Directory(buildKey(blobNamePrefix), '/'));
-                } else {
-                    files = blobStore.swift().listDirectory(new Directory(keyPath, '/'));
-                }
-                if (files != null && !files.isEmpty()) {
-                    for (DirectoryOrObject object : files) {
-                        if (object.isObject()) {
-                            String name = object.getName().substring(keyPath.length());
-                            blobsBuilder.put(name, new PlainBlobMetaData(name, object.getAsObject().getContentLength()));
-                        }
+        return SwiftPerms.exec(() -> {
+            ImmutableMap.Builder<String, BlobMetaData> blobsBuilder = ImmutableMap.builder();
+            Collection<DirectoryOrObject> files;
+            if (blobNamePrefix != null) {
+                files = blobStore.swift().listDirectory(new Directory(buildKey(blobNamePrefix), '/'));
+            } else {
+                files = blobStore.swift().listDirectory(new Directory(keyPath, '/'));
+            }
+            if (files != null && !files.isEmpty()) {
+                for (DirectoryOrObject object : files) {
+                    if (object.isObject()) {
+                        String name = object.getName().substring(keyPath.length());
+                        blobsBuilder.put(name, new PlainBlobMetaData(name, object.getAsObject().getContentLength()));
                     }
                 }
-                return blobsBuilder.build();
             }
+            return blobsBuilder.build();
         });
     }
 
@@ -145,19 +155,6 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
             public InputStream run() {
                 return new BufferedInputStream(blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
                         blobStore.bufferSizeInBytes());
-            }
-        });
-    }
-
-    @Override
-    public void writeBlob(final String blobName, final BytesReference bytes) throws IOException {
-        // need to remove old file if already exist
-        deleteBlob(blobName);
-        SwiftPerms.exec(new PrivilegedAction<Void>() {
-            @Override
-            public Void run() {
-                blobStore.swift().getObject(buildKey(blobName)).uploadObject(new ByteArrayInputStream(bytes.array(), bytes.arrayOffset(), bytes.length()));
-                return null;
             }
         });
     }
