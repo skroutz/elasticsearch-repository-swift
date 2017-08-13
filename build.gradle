@@ -49,7 +49,7 @@ repositories {
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }
 dependencies {
-    compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearchVersion
     compileOnly group: 'org.javaswift', name: 'joss', version:'0.9.15'
+    compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearchVersion
     compileOnly group: 'com.google.guava', name: 'guava', version:'19.0'
 }
