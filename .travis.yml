@@ -11,7 +11,7 @@ before_install:
   - export ES_VERSION=$(if [[ ${BRANCH} == es-* ]] ; then echo ${BRANCH}; else echo $(curl https://api.github.com/repos/elastic/elasticsearch/tags | jq -r '.[0].name'); fi)
   - echo "TRAVIS_BRANCH=$TRAVIS_BRANCH, PR=$PR, BRANCH=$BRANCH, TAG=$TRAVIS_TAG"
   - echo "ES_VERSION=$ES_VERSION"
-  - wget https://raw.githubusercontent.com/elastic/elasticsearch/${BRANCH/es-/v}/buildSrc/version.properties -O gradle.properties
+  - wget https://raw.githubusercontent.com/elastic/elasticsearch/${ES_VERSION/es-/v}/buildSrc/version.properties -O gradle.properties
 
 script:
   - ./gradlew clean check
