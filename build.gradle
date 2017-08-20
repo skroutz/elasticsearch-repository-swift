@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.elasticsearch.gradle:build-tools:5.2.0"
+        classpath "org.elasticsearch.gradle:build-tools:" + elasticsearch
     }
 }
 
@@ -17,12 +17,8 @@ apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'idea'
 apply plugin: 'maven'
 
-// https://raw.githubusercontent.com/elastic/elasticsearch/v5.0.0/buildSrc/version.properties
-def elasticsearchVersion = '5.2.0'
-def luceneVersion = '6.4.0'
-
 group = 'org.wikimedia.elasticsearch.swift'
-version = '3.0.0-es' + elasticsearchVersion
+version = '3.0.0-es' + elasticsearch
 description = """elasticsearch-repository-swift"""
 
 esplugin {
@@ -30,7 +26,7 @@ esplugin {
     version rootProject.version
     description 'Swift repository plugin for Elasticsearch'
     classname 'org.wikimedia.elasticsearch.swift.SwiftRepositoryPlugin'
-//    licenseFile rootProject.file('LICENSE.md')
+//    licenseFile rootProject.file('LICENSE')
 }
 
 sourceCompatibility = 1.8
@@ -50,6 +46,7 @@ repositories {
 }
 dependencies {
     compileOnly group: 'org.javaswift', name: 'joss', version:'0.9.15'
-    compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearchVersion
+    compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearch
     compileOnly group: 'com.google.guava', name: 'guava', version:'19.0'
+    testCompile group: 'junit', name: 'junit', version: junit
 }
