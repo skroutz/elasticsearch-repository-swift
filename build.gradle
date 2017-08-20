@@ -22,7 +22,7 @@ esplugin {
     version rootProject.version
     description 'Swift repository plugin for Elasticsearch'
     classname 'org.wikimedia.elasticsearch.swift.SwiftRepositoryPlugin'
-//    licenseFile rootProject.file('LICENSE')
+    licenseFile rootProject.file('LICENSE')
 }
 
 sourceCompatibility = 1.8
@@ -42,7 +42,10 @@ repositories {
 }
 dependencies {
     compileOnly group: 'org.javaswift', name: 'joss', version:'0.9.15'
-    compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearch
     compileOnly group: 'com.google.guava', name: 'guava', version:'19.0'
+    compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearch
+    testCompile group: 'org.elasticsearch.test', name: 'framework', version: elasticsearch
     testCompile group: 'junit', name: 'junit', version: junit
 }
+
+project.test.testClassesDir = project.sourceSets.test.output.classesDir
