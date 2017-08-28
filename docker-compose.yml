@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  swift:
+    image: "serverascode/swift-onlyone"
+    ports:
+      - "8080:8080"
+  elasticsearch:
+    build: .
+    ports:
+      - "9200:9200"
+    environment:
+      - cluster.name=es-swift
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.monitoring.enabled=false
+      - xpack.security.enabled=false
+      - xpack.watcher.enabled=false
+    depends_on:
+      - swift
+  tester:
+    build: ./tester
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./tester:/code
+    environment:
+      - ST_USER=tester
+      - ST_KEY=testing
+      - ST_AUTH=http://localhost:8080/auth/v1.0
+    command: python3 /code/test_swift_repository.py

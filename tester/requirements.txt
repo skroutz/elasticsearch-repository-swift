@@ -1,0 +1,5 @@
+# https://docs.openstack.org/python-swiftclient/latest/swiftclient.html#module-swiftclient.client
+python-swiftclient
+elasticsearch
+keystoneauth1
+requests
