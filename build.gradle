@@ -14,12 +14,12 @@ apply plugin: 'maven'
 
 group = 'org.wikimedia.elasticsearch.swift'
 version = '3.0.0-es' + elasticsearch
-description = """elasticsearch-repository-swift"""
+description = """OpenStack Swift repository plugin for Elasticsearch"""
 
 esplugin {
     name 'repository-swift'
     version rootProject.version
-    description 'Swift repository plugin for Elasticsearch'
+    description 'OpenStack Swift repository plugin for Elasticsearch'
     classname 'org.wikimedia.elasticsearch.swift.SwiftRepositoryPlugin'
     licenseFile rootProject.file('LICENSE')
 }
@@ -30,14 +30,8 @@ tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 }
 
-configurations.all {
-}
-
-dependencyLicenses.enabled = false
-
 repositories {
-    mavenCentral()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    jcenter()
 }
 dependencies {
     compileOnly group: 'org.javaswift', name: 'joss', version:'0.9.15'

@@ -27,7 +27,7 @@ import org.elasticsearch.test.rest.yaml.ESClientYamlSuiteTestCase;
  */
 public class RepositorySwiftRestIT extends ESClientYamlSuiteTestCase {
 
-    public RepositorySwiftRestIT(@Name("yaml") ClientYamlTestCandidate testCandidate) {
+    public RepositorySwiftRestIT(@Name("yml") ClientYamlTestCandidate testCandidate) {
         super(testCandidate);
     }
 
