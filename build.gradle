@@ -1,15 +1,14 @@
 buildscript {
     repositories {
-        mavenCentral()
         jcenter()
     }
     dependencies {
-        classpath "org.elasticsearch.gradle:build-tools:" + elasticsearch
+        classpath 'io.plugind.builders.elasticsearch:gradle-plugin:0.3.0'
     }
 }
+apply plugin: 'elasticsearch.esplugin'
 
 apply plugin: 'java'
-apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'idea'
 apply plugin: 'maven'
 
@@ -48,4 +47,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: junit
 }
 
-project.test.testClassesDir = project.sourceSets.test.output.classesDir
+dependencyLicenses.enabled = false
+thirdPartyAudit.enabled = false
+noticeFile = rootProject.file('NOTICE')
+licenseFile = rootProject.file('LICENSE')
