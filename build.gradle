@@ -3,14 +3,13 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'io.plugind.builders.elasticsearch:gradle-plugin:0.3.0'
+        classpath 'io.plugind.builders.elasticsearch:gradle-plugin:0.4.0'
     }
 }
 apply plugin: 'elasticsearch.esplugin'
 
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'maven'
 
 group = 'org.wikimedia.elasticsearch.swift'
 version = '3.0.0-es' + elasticsearch
@@ -21,21 +20,14 @@ esplugin {
     version rootProject.version
     description 'OpenStack Swift repository plugin for Elasticsearch'
     classname 'org.wikimedia.elasticsearch.swift.SwiftRepositoryPlugin'
-    licenseFile rootProject.file('LICENSE')
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
 }
 
 repositories {
     jcenter()
 }
 dependencies {
-    compileOnly group: 'org.javaswift', name: 'joss', version:'0.9.15'
-    compileOnly group: 'com.google.guava', name: 'guava', version:'19.0'
+    compileOnly group: 'org.javaswift', name: 'joss', version: '0.9.17'
+    compileOnly group: 'com.google.guava', name: 'guava', version: '23.0'
     compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearch
     testCompile group: 'org.elasticsearch.test', name: 'framework', version: elasticsearch
     testCompile group: 'junit', name: 'junit', version: junit
@@ -43,5 +35,3 @@ dependencies {
 
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
-noticeFile = rootProject.file('NOTICE')
-licenseFile = rootProject.file('LICENSE')
