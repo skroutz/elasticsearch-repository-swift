@@ -47,7 +47,7 @@ public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
     }
 
     public List<String> getSettingsFilter() {
-        return Arrays.asList(
+        return Collections.singletonList(
                 SwiftRepository.Swift.PASSWORD_SETTING.getKey());
     }
 }

@@ -30,7 +30,7 @@ public class SwiftPerms {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new SpecialPermission());
-            return AccessController.<T>doPrivileged(callable);
+            return AccessController.doPrivileged(callable);
         }
         return callable.run();
     }

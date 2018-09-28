@@ -35,11 +35,13 @@ repositories {
     jcenter()
 }
 dependencies {
-    compileOnly group: 'org.javaswift', name: 'joss', version: '0.9.17'
-    compileOnly group: 'com.google.guava', name: 'guava', version: '23.0'
+    compile group: 'org.javaswift', name: 'joss', version: '0.10.2'
+    compile group: 'com.google.guava', name: 'guava', version: '23.0'
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
     compileOnly group: 'org.elasticsearch', name: 'elasticsearch', version: elasticsearch
-    testCompile group: 'org.elasticsearch.test', name: 'framework', version: elasticsearch
     testCompile group: 'junit', name: 'junit', version: junit
+    testCompile group: 'org.elasticsearch.test', name: 'framework', version: elasticsearch
+    testRuntimeClasspath group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
 }
 
 dependencyLicenses.enabled = false

@@ -17,6 +17,7 @@
 package org.wikimedia.elasticsearch.swift.repositories.blobstore;
 
 import java.security.PrivilegedAction;
+import java.util.Collection;
 
 import org.elasticsearch.common.blobstore.BlobContainer;
 import org.elasticsearch.common.blobstore.BlobPath;
@@ -27,6 +28,7 @@ import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
+import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
 import org.wikimedia.elasticsearch.swift.SwiftPerms;
 
@@ -49,32 +51,26 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
     public SwiftBlobStore(Settings settings, final Account auth, final String container) {
         super(settings);
         this.bufferSizeInBytes = (int)settings.getAsBytesSize("buffer_size", new ByteSizeValue(100, ByteSizeUnit.KB)).getBytes();
-        swift = SwiftPerms.exec(new PrivilegedAction<Container>() {
-            @Override
-            public Container run() {
-                Container swift = auth.getContainer(container);
-                if (!swift.exists()) {
-                    swift.create();
-                    swift.makePublic();
-                }
-                return swift;
+        swift = SwiftPerms.exec(() -> {
+            Container swift = auth.getContainer(container);
+            if (!swift.exists()) {
+                swift.create();
+                swift.makePublic();
             }
+            return swift;
         });
     }
 
     public boolean moveBlobStorage(final String sourceblob, final String destinationblob){
-        return SwiftPerms.exec(new PrivilegedAction<Boolean>() {
-            @Override
-            public Boolean run() {
-                StoredObject sourceObject = swift.getObject(sourceblob);
-                if(sourceObject.exists()) {
-                   StoredObject newObject = swift.getObject(destinationblob);
-                   sourceObject.copyObject(swift, newObject);
-                   sourceObject.delete();
-                   return true;
-                }
-                return false;
+        return SwiftPerms.exec(() -> {
+            StoredObject sourceObject = swift.getObject(sourceblob);
+            if(sourceObject.exists()) {
+               StoredObject newObject = swift.getObject(destinationblob);
+               sourceObject.copyObject(swift, newObject);
+               sourceObject.delete();
+               return true;
             }
+            return false;
         });
     }
 
@@ -107,20 +103,28 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
      */
     @Override
     public void delete(final BlobPath path) {
-        SwiftPerms.exec(new PrivilegedAction<Void>() {
-            @Override
-            public Void run() {
-                String keyPath = path.buildAsString();
-                if (!keyPath.isEmpty() && !keyPath.endsWith("/")) {
-                    keyPath = keyPath + "/";
-                }
-                StoredObject obj = swift().getObject(keyPath);
+        SwiftPerms.exec((PrivilegedAction<Void>) () -> {
+            String keyPath = path.buildAsString();
+            if (keyPath.isEmpty() || keyPath.endsWith("/")) {
+                deleteByPrefix(keyPath.isEmpty() ? swift.listDirectory() : swift.listDirectory(keyPath, '/', "", 100));
+            } else {
+                StoredObject obj = swift.getObject(keyPath);
                 if (obj.exists()) {
                     obj.delete();
                 }
-                return null;
             }
+            return null;
         });
+    }
+
+    private void deleteByPrefix(Collection<DirectoryOrObject> directoryOrObjects) {
+        for (DirectoryOrObject directoryOrObject : directoryOrObjects) {
+            if (directoryOrObject.isObject()) {
+                directoryOrObject.getAsObject().delete();
+            } else {
+                deleteByPrefix(swift.listDirectory(directoryOrObject.getAsDirectory()));
+            }
+        }
     }
 
     /**

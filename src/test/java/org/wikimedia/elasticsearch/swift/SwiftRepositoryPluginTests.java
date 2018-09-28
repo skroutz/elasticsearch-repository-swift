@@ -18,6 +18,12 @@ package org.wikimedia.elasticsearch.swift;
 
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.test.ESIntegTestCase;
+import org.javaswift.joss.client.mock.AccountMock;
+import org.javaswift.joss.client.mock.ContainerMock;
+import org.javaswift.joss.client.mock.StoredObjectMock;
+import org.javaswift.joss.instructions.UploadInstructions;
+import org.javaswift.joss.swift.Swift;
+import org.junit.Before;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,7 +40,27 @@ public class SwiftRepositoryPluginTests extends ESIntegTestCase {
         return Collections.singletonList(SwiftRepositoryPlugin.class);
     }
 
+    protected Swift swift;
+
+    protected AccountMock account;
+
+    protected ContainerMock container;
+
+    protected StoredObjectMock object;
+
+    protected UploadInstructions instructions;
+
+    @Before
+    public void setup() {
+        this.swift = new Swift();
+        this.account = new AccountMock(swift);
+        this.container = new ContainerMock(account, "does-not-exist");
+        this.object = new StoredObjectMock(container, "does-not-exist");
+        this.instructions = new UploadInstructions(new byte[] { 0x01, 0x02, 0x03 });
+    }
+
     public void testPlugin() {
+        container.create();
         assert(true);
     }
 }

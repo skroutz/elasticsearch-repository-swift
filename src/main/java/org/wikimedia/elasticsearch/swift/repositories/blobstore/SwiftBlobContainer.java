@@ -22,6 +22,7 @@ import org.elasticsearch.common.blobstore.BlobMetaData;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
+import org.javaswift.joss.exception.CommandException;
 import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
@@ -30,6 +31,7 @@ import org.wikimedia.elasticsearch.swift.SwiftPerms;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
 import java.security.PrivilegedAction;
 import java.util.Collection;
@@ -64,12 +66,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      */
     @Override
     public boolean blobExists(final String blobName) {
-        return SwiftPerms.exec(new PrivilegedAction<Boolean>() {
-                @Override
-                public Boolean run() {
-                    return blobStore.swift().getObject(buildKey(blobName)).exists();
-                }
-        });
+        return SwiftPerms.exec(() -> blobStore.swift().getObject(buildKey(blobName)).exists());
     }
 
     /**
@@ -78,16 +75,19 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      */
     @Override
     public void deleteBlob(final String blobName) throws IOException {
-        SwiftPerms.exec(new PrivilegedAction<Void>() {
-            @Override
-            public Void run() {
-                StoredObject object = blobStore.swift().getObject(buildKey(blobName));
-                if (object.exists()) {
-                    object.delete();
-                }
+        CommandException ex = SwiftPerms.exec(() -> {
+            StoredObject object = blobStore.swift().getObject(buildKey(blobName));
+            try {
+                object.delete();
                 return null;
+            } catch (CommandException e) {
+                return e;
             }
         });
+
+        if (ex != null) {
+            throw new IOException("Requested blob was not found: " + blobName, ex);
+        }
     }
 
     /**
@@ -135,7 +135,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     }
 
     @Override
-    public void move(String sourceBlobname, String destinationBlobname) throws IOException {
+    public void move(String sourceBlobname, String destinationBlobname) {
 
         String source = buildKey(sourceBlobname);
         String target = buildKey(destinationBlobname);
@@ -151,13 +151,10 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      */
     @Override
     public InputStream readBlob(final String blobName) throws IOException {
-        final InputStream is = SwiftPerms.exec(new PrivilegedAction<InputStream>() {
-            @Override
-            public InputStream run() {
-                return new BufferedInputStream(blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
-                        blobStore.bufferSizeInBytes());
-            }
-        });
+        final InputStream is = SwiftPerms.exec(
+                (PrivilegedAction<InputStream>) () -> new BufferedInputStream(
+                        blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
+                blobStore.bufferSizeInBytes()));
 
         if (null == is) {
             throw new NoSuchFileException("Blob object [" + blobName + "] not found.");
@@ -168,14 +165,12 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
 
     @Override
     public void writeBlob(final String blobName, final InputStream in, final long blobSize) throws IOException {
-        // need to remove old file if already exist
-        deleteBlob(blobName);
-        SwiftPerms.exec(new PrivilegedAction<Void>() {
-            @Override
-            public Void run() {
-                blobStore.swift().getObject(buildKey(blobName)).uploadObject(in);
-                return null;
-            }
+        if (blobExists(blobName)) {
+            throw new FileAlreadyExistsException("blob [" + blobName + "] already exists, cannot overwrite");
+        }
+        SwiftPerms.exec(() -> {
+            blobStore.swift().getObject(buildKey(blobName)).uploadObject(in);
+            return null;
         });
     }
 }

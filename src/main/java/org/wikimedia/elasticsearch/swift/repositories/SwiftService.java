@@ -16,8 +16,6 @@
 
 package org.wikimedia.elasticsearch.swift.repositories;
 
-import java.security.PrivilegedAction;
-
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
@@ -74,12 +72,7 @@ public class SwiftService extends AbstractLifecycleComponent {
     }
 
     private Account createAccount(final AccountConfig conf) {
-        return SwiftPerms.exec(new PrivilegedAction<Account>() {
-            @Override
-            public Account run() {
-                return new AccountFactory(conf).createAccount();
-            }
-        });
+        return SwiftPerms.exec(() -> new AccountFactory(conf).createAccount());
     }
 
     public synchronized Account swiftKeyStone(String url, String username, String password, String tenantName,
