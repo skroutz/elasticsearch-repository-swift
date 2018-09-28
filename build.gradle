@@ -1,19 +1,28 @@
 buildscript {
     repositories {
+        mavenLocal()
         jcenter()
     }
     dependencies {
-        classpath 'io.plugind.builders.elasticsearch:gradle-plugin:0.4.0'
+        classpath "org.elasticsearch.gradle:build-tools:6.0.0"
     }
 }
-apply plugin: 'elasticsearch.esplugin'
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'elasticsearch.esplugin'
+
+ext {
+    elasticsearch = '6.0.0'
+    junit = '4.12'
+}
 
 group = 'org.wikimedia.elasticsearch.swift'
 version = '3.0.0-es' + elasticsearch
 description = """OpenStack Swift repository plugin for Elasticsearch"""
+
+licenseFile = rootProject.file('LICENSE')
+noticeFile = rootProject.file('NOTICE')
 
 esplugin {
     name 'repository-swift'

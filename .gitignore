@@ -10,3 +10,5 @@ bin/
 pom.xml.releaseBackup
 release.properties
 *.log
+out/
+*.iml
