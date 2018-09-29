@@ -1,29 +1,13 @@
 Swift repository plugin for Elasticsearch
 =========================================
 
-**NOTE:** This plugin is looking for a new maintainer. The wikimedia foundation
-does not use this plugin actively and cannot guarantee proper testing of future
-releases. If you want to fork this plugin and plan to maintain it actively we
-will be happy to add a link here to your repo.
-
 In order to install the plugin, simply run: `bin/plugin install org.wikimedia.elasticsearch.swift/swift-repository-plugin/<version>`.
 
-|      Swift Plugin           | elasticsearch         | Release date |
-|-----------------------------|-----------------------|:------------:|
-| 0.4                         | 1.1.0                 | 2014-05-28   |
-| 0.6                         | 1.3.2                 | 2014-08-20   |
-| 0.7                         | 1.4.0                 | 2014-11-07   |
-| 1.6.0                       | 1.6.0                 | 2015-06-09   |
-| 1.7.0                       | 1.7.0                 | 2015-07-20   |
-| 2.1.1                       | 2.1.1                 | 2016-05-12   |
-| 2.3.3.1                     | 2.3.3                 | 2016-06-27   |
-| 2.3.4                       | 2.3.4                 | 2016-08-03   |
-| 2.3.5                       | 2.3.5                 | 2016-09-09   |
-| 2.4.0                       | 2.4.0                 | 2016-09-09   |
-| 2.4.1                       | 2.4.1                 | 2016-10-10   |
+For Elasticsearch versions prior to 5.x, please refer to https://github.com/wikimedia/search-repository-swift.
 
-Only the versions in the table above should be used. The in-between releases
-were buggy and are not recommended.
+Starting with version 3.0.0 of this plugin the plugin is developed on master, and compiled against all Elasticsearch versions in branches.
+
+The resulting versioning schema looks like this: 3.0.0-es5.2.0, where the plugin version is followed by the ES version it is compatible with. A single plugin version will have several ES compatible versions.   
 
 ## Create Repository
 ```
