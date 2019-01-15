@@ -23,6 +23,7 @@ import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
 import org.javaswift.joss.exception.CommandException;
+import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
@@ -151,16 +152,20 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      */
     @Override
     public InputStream readBlob(final String blobName) throws IOException {
-        final InputStream is = SwiftPerms.exec(
-                (PrivilegedAction<InputStream>) () -> new BufferedInputStream(
-                        blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
-                blobStore.bufferSizeInBytes()));
+        try {
+            final InputStream is = SwiftPerms.exec(
+                    (PrivilegedAction<InputStream>) () -> new BufferedInputStream(
+                            blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
+                            blobStore.bufferSizeInBytes()));
 
-        if (null == is) {
+            if (null == is) {
+                throw new NoSuchFileException("Blob object [" + blobName + "] not found.");
+            }
+
+            return is;
+        } catch (NotFoundException e){
             throw new NoSuchFileException("Blob object [" + blobName + "] not found.");
         }
-
-        return is;
     }
 
     @Override
