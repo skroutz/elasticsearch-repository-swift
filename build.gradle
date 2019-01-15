@@ -53,6 +53,7 @@ dependencies {
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
 
+// TODO remove the below
 task publishToES(type:Copy) {
     from zipTree("$buildDir/distributions/repository-swift-3.0.0-es6.0.0.zip")
     include "/elasticsearch/**"

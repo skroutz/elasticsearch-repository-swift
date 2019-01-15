@@ -164,7 +164,9 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
 
             return is;
         } catch (NotFoundException e){
-            throw new NoSuchFileException("Blob object [" + blobName + "] not found.");
+            NoSuchFileException e2 = new NoSuchFileException("Blob object [" + blobName + "] not found.");
+            e2.initCause(e);
+            throw e2;
         }
     }
 

@@ -15,14 +15,19 @@
  */
 package org.wikimedia.elasticsearch.swift;
 
+import org.elasticsearch.common.blobstore.BlobContainer;
+import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.BlobStore;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.repositories.ESBlobStoreContainerTestCase;
 import org.javaswift.joss.client.mock.AccountMock;
+import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.swift.Swift;
 import org.junit.Before;
 import org.wikimedia.elasticsearch.swift.repositories.blobstore.SwiftBlobStore;
 
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.Locale;
 
 public class SwiftBlobContainerTests extends ESBlobStoreContainerTestCase {
@@ -39,5 +44,13 @@ public class SwiftBlobContainerTests extends ESBlobStoreContainerTestCase {
     protected BlobStore newBlobStore() {
         String container = randomAlphaOfLength(randomIntBetween(1, 10)).toLowerCase(Locale.ROOT);
         return new SwiftBlobStore(Settings.EMPTY, this.account, container);
+    }
+
+    public void testCommandExceptionDuringRead() throws IOException {
+        try(BlobStore store = newBlobStore()) {
+            final BlobContainer container = store.blobContainer(new BlobPath());
+            expectThrows(NoSuchFileException.class, NotFoundException.class,
+                         () -> container.readBlob("foobar"));
+        }
     }
 }
