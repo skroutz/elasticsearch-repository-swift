@@ -163,7 +163,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     @Override
     public void writeBlob(final String blobName, final InputStream in, final long blobSize, boolean failIfAlreadyExists)
                 throws IOException {
-        if (blobExists(blobName)) {
+        if (failIfAlreadyExists && blobExists(blobName)) {
             throw new FileAlreadyExistsException("blob [" + blobName + "] already exists, cannot overwrite");
         }
         SwiftPerms.exec(() -> {
