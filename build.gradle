@@ -68,14 +68,3 @@ dependencies {
 
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
-
-// TODO remove the below
-task publishToES(type:Copy) {
-    from zipTree("$buildDir/distributions/repository-swift-${version}.zip")
-    include "/elasticsearch/**"
-    eachFile { fcp -> fcp.path = fcp.path.replaceFirst("^elasticsearch", '')}
-    includeEmptyDirs false
-    into "C:/elasticsearch/elasticsearch-6.0.0/plugins/repository-swift-${version}"
-}
-
-build.finalizedBy publishToES
