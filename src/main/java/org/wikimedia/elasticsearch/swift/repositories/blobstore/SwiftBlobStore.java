@@ -22,7 +22,6 @@ import java.util.Collection;
 import org.elasticsearch.common.blobstore.BlobContainer;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.BlobStore;
-import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
@@ -35,7 +34,7 @@ import org.wikimedia.elasticsearch.swift.SwiftPerms;
 /**
  * Our blob store
  */
-public class SwiftBlobStore extends AbstractComponent implements BlobStore {
+public class SwiftBlobStore implements BlobStore {
     // How much to buffer our blobs by
     private final int bufferSizeInBytes;
 
@@ -49,7 +48,6 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
      * @param container swift container
      */
     public SwiftBlobStore(Settings settings, final Account auth, final String container) {
-        super(settings);
         this.bufferSizeInBytes = (int)settings.getAsBytesSize("buffer_size", new ByteSizeValue(100, ByteSizeUnit.KB)).getBytes();
         swift = SwiftPerms.exec(() -> {
             Container swift = auth.getContainer(container);

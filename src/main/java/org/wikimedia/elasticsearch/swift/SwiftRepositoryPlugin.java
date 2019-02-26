@@ -25,7 +25,6 @@ import org.elasticsearch.repositories.Repository;
 import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
 import org.wikimedia.elasticsearch.swift.repositories.SwiftService;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

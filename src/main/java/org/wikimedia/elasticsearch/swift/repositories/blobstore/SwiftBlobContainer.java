@@ -87,7 +87,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         });
 
         if (ex != null) {
-            throw new IOException("Requested blob was not found: " + blobName, ex);
+            throw new NoSuchFileException(blobName, null, "Requested blob was not found " + ex);
         }
     }
 
@@ -135,16 +135,6 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         return keyPath + blobName;
     }
 
-    @Override
-    public void move(String sourceBlobname, String destinationBlobname) {
-
-        String source = buildKey(sourceBlobname);
-        String target = buildKey(destinationBlobname);
-        if (blobExists(sourceBlobname)) {
-            blobStore.moveBlobStorage(source, target);
-        }
-    }
-
     /**
      * Fetch a given blob into a BufferedInputStream
      * @param blobName The blob name to read
@@ -171,7 +161,8 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     }
 
     @Override
-    public void writeBlob(final String blobName, final InputStream in, final long blobSize) throws IOException {
+    public void writeBlob(final String blobName, final InputStream in, final long blobSize, boolean failIfAlreadyExists)
+                throws IOException {
         if (blobExists(blobName)) {
             throw new FileAlreadyExistsException("blob [" + blobName + "] already exists, cannot overwrite");
         }

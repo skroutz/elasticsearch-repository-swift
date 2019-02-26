@@ -17,6 +17,7 @@ apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
 
 ext {
+    javaxActivationVersion = '1.1'
     junit = '4.12'
     jossVersion = '0.10.2'
     httpclientVersion = '4.5.2'
@@ -49,6 +50,7 @@ repositories {
     jcenter()
 }
 dependencies {
+    runtime group: 'javax.activation', name: 'activation', version: javaxActivationVersion
     compile group: 'org.javaswift', name: 'joss', version: jossVersion
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: httpclientVersion
     runtime group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion

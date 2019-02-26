@@ -114,6 +114,11 @@ public class SwiftRepository extends BlobStoreRepository {
         return blobStore;
     }
 
+    @Override
+    protected BlobStore createBlobStore() throws Exception {
+        throw new UnsupportedOperationException(); //TODO implement
+    }
+
     /**
      * Get the base blob path
      */
