@@ -1,4 +1,7 @@
 grant {
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.net.NetPermission "getProxySelector";
+  // replace * with safe value(s)
+  // permission java.net.SocketPermission "*", "connect,resolve";
 };
