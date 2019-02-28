@@ -59,19 +59,6 @@ public class SwiftBlobStore implements BlobStore {
         });
     }
 
-    public boolean moveBlobStorage(final String sourceblob, final String destinationblob){
-        return SwiftPerms.exec(() -> {
-            StoredObject sourceObject = swift.getObject(sourceblob);
-            if(sourceObject.exists()) {
-               StoredObject newObject = swift.getObject(destinationblob);
-               sourceObject.copyObject(swift, newObject);
-               sourceObject.delete();
-               return true;
-            }
-            return false;
-        });
-    }
-
     /**
      * @return the container
      */
