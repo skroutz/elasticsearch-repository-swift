@@ -62,8 +62,8 @@ public class SwiftRepository extends BlobStoreRepository {
     // Are we compressing our snapshots?
     private final boolean compress;
 
-    private final Settings settings;
-    private final SwiftService swiftService;
+    protected final Settings settings;
+    protected final SwiftService swiftService;
 
     /**
      * Constructs new BlobStoreRepository
