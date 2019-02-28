@@ -28,6 +28,7 @@ import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
 import org.wikimedia.elasticsearch.swift.SwiftPerms;
+import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -47,6 +48,8 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     // The root path for blobs. Used by buildKey to build full blob names
     protected final String keyPath;
 
+    private final boolean minimizeBlobExistsChecks;
+
     /**
      * Constructor
      * @param path The BlobPath to find blobs in
@@ -60,6 +63,8 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
             keyPath = keyPath + "/";
         }
         this.keyPath = keyPath;
+        this.minimizeBlobExistsChecks = blobStore.getSettings()
+            .getAsBoolean(SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING.getKey(), true);
     }
 
     /**
@@ -160,10 +165,14 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         }
     }
 
+    private boolean blobExistsAllowed(){
+        return keyPath.isEmpty() || !minimizeBlobExistsChecks;
+    }
+
     @Override
     public void writeBlob(final String blobName, final InputStream in, final long blobSize, boolean failIfAlreadyExists)
                 throws IOException {
-        if (failIfAlreadyExists && blobExists(blobName)) {
+        if (failIfAlreadyExists && blobExistsAllowed() && blobExists(blobName)) {
             throw new FileAlreadyExistsException("blob [" + blobName + "] already exists, cannot overwrite");
         }
         SwiftPerms.exec(() -> {

@@ -51,7 +51,14 @@ public class SwiftRepository extends BlobStoreRepository {
         Setting<ByteSizeValue> CHUNK_SIZE_SETTING = Setting.byteSizeSetting("chunk_size", new ByteSizeValue(5,
                 ByteSizeUnit.GB));
         Setting<Boolean> COMPRESS_SETTING = Setting.boolSetting("compress", false);
+        Setting<Boolean> MINIMIZE_BLOB_EXISTS_CHECKS_SETTING = Setting.boolSetting("swift.minimize_blob_exists_checks",
+                                                                                   true,
+                                                                                    Setting.Property.NodeScope);
+
+
     }
+
+
 
     // Base path for blobs
     private final BlobPath basePath;

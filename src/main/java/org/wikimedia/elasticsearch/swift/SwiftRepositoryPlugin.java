@@ -35,9 +35,6 @@ import java.util.Map;
  * Our base plugin stuff.
  */
 public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
-    public static final Setting<Boolean> MINIMIZE_BLOB_EXISTS_CHECKS_SETTING =
-        Setting.boolSetting("swift.minimize_blob_exists_checks", true, Setting.Property.NodeScope);
-
     // overridable for tests
     protected SwiftService createStorageService(Settings settings) {
         return new SwiftService(settings);
@@ -57,6 +54,6 @@ public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
 
     @Override
     public List<Setting<?>> getSettings() {
-        return Arrays.asList(MINIMIZE_BLOB_EXISTS_CHECKS_SETTING);
+        return Arrays.asList(SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING);
     }
 }

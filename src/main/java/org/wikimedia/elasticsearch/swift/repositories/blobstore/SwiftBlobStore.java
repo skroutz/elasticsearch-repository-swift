@@ -41,6 +41,8 @@ public class SwiftBlobStore implements BlobStore {
     // Our Swift container. This is important.
     private final Container swift;
 
+    private final Settings settings;
+
     /**
      * Constructor. Sets up the container mostly.
      * @param settings Settings for our repository. Only care about buffer size.
@@ -48,6 +50,7 @@ public class SwiftBlobStore implements BlobStore {
      * @param container swift container
      */
     public SwiftBlobStore(Settings settings, final Account auth, final String container) {
+        this.settings = settings;
         this.bufferSizeInBytes = (int)settings.getAsBytesSize("buffer_size", new ByteSizeValue(100, ByteSizeUnit.KB)).getBytes();
         swift = SwiftPerms.exec(() -> {
             Container swift = auth.getContainer(container);
@@ -117,5 +120,9 @@ public class SwiftBlobStore implements BlobStore {
      */
     @Override
     public void close() {
+    }
+
+    protected Settings getSettings() {
+        return settings;
     }
 }
