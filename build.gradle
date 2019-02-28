@@ -34,16 +34,13 @@ group = 'org.wikimedia.elasticsearch.swift'
 version = '3.0.0-es' + elasticsearch
 description = """OpenStack Swift repository plugin for Elasticsearch"""
 
-licenseFile = rootProject.file('LICENSE')
-noticeFile = rootProject.file('NOTICE')
-
 esplugin {
     name 'repository-swift'
     version rootProject.version
     description 'OpenStack Swift repository plugin for Elasticsearch'
     classname 'org.wikimedia.elasticsearch.swift.SwiftRepositoryPlugin'
-    licenseFile rootProject.file('LICENSE')
-    noticeFile rootProject.file('NOTICE')
+    licenseFile rootProject.file('LICENSE.txt')
+    noticeFile rootProject.file('NOTICE.txt')
 }
 
 repositories {
