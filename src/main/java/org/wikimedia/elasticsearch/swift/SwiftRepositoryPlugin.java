@@ -16,6 +16,7 @@
 
 package org.wikimedia.elasticsearch.swift;
 
+import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.env.Environment;
@@ -25,6 +26,7 @@ import org.elasticsearch.repositories.Repository;
 import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
 import org.wikimedia.elasticsearch.swift.repositories.SwiftService;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,8 @@ import java.util.Map;
  * Our base plugin stuff.
  */
 public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
+    public static final Setting<Boolean> MINIMIZE_BLOB_EXISTS_CHECKS_SETTING =
+        Setting.boolSetting("swift.minimize_blob_exists_checks", true, Setting.Property.NodeScope);
 
     // overridable for tests
     protected SwiftService createStorageService(Settings settings) {
@@ -45,8 +49,14 @@ public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
                 (metadata) -> new SwiftRepository(metadata, env.settings(), namedXContentRegistry, createStorageService(env.settings())));
     }
 
+    @Override
     public List<String> getSettingsFilter() {
         return Collections.singletonList(
                 SwiftRepository.Swift.PASSWORD_SETTING.getKey());
+    }
+
+    @Override
+    public List<Setting<?>> getSettings() {
+        return Arrays.asList(MINIMIZE_BLOB_EXISTS_CHECKS_SETTING);
     }
 }

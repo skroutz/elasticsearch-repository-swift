@@ -16,6 +16,7 @@
 
 package org.wikimedia.elasticsearch.swift;
 
+import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.javaswift.joss.client.mock.AccountMock;
@@ -27,6 +28,7 @@ import org.junit.Before;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by synhershko on 10/07/2017.
@@ -62,5 +64,10 @@ public class SwiftRepositoryPluginTests extends ESIntegTestCase {
     public void testPlugin() {
         container.create();
         assert(true);
+    }
+
+    public void testPluginSettings(){
+        List<Setting<?>> settings = new SwiftRepositoryPlugin().getSettings();
+        assertTrue(settings.stream().anyMatch(s -> s.getKey()=="swift.minimize_blob_exists_checks"));
     }
 }
