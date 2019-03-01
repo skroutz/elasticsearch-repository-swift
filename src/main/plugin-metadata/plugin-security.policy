@@ -1,7 +1,8 @@
 grant {
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.lang.RuntimePermission "getClassLoader"; // slf4j support
   permission java.net.NetPermission "getProxySelector";
-  // replace * with safe value(s)
+  // replace * with safe address:port combination(s)
   // permission java.net.SocketPermission "*", "connect,resolve";
 };
