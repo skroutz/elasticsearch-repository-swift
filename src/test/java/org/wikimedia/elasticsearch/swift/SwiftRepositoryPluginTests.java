@@ -25,6 +25,7 @@ import org.javaswift.joss.client.mock.StoredObjectMock;
 import org.javaswift.joss.instructions.UploadInstructions;
 import org.javaswift.joss.swift.Swift;
 import org.junit.Before;
+import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -68,6 +69,7 @@ public class SwiftRepositoryPluginTests extends ESIntegTestCase {
 
     public void testPluginSettings(){
         List<Setting<?>> settings = new SwiftRepositoryPlugin().getSettings();
-        assertTrue(settings.stream().anyMatch(s -> s.getKey()=="swift.minimize_blob_exists_checks"));
+        assertTrue(settings.stream().anyMatch(s -> s.getKey()== SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING.getKey()));
+        assertTrue(settings.stream().anyMatch(s -> s.getKey()== SwiftRepository.Swift.ALLOW_CACHING_SETTING.getKey()));
     }
 }

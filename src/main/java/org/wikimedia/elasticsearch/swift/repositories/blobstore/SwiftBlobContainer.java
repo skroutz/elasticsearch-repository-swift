@@ -48,7 +48,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     // The root path for blobs. Used by buildKey to build full blob names
     protected final String keyPath;
 
-    private final boolean minimizeBlobExistsChecks;
+    private final boolean blobExistsCheckAllowed;
 
     /**
      * Constructor
@@ -63,8 +63,9 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
             keyPath = keyPath + "/";
         }
         this.keyPath = keyPath;
-        this.minimizeBlobExistsChecks = blobStore.getSettings()
-            .getAsBoolean(SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING.getKey(), true);
+        this.blobExistsCheckAllowed = keyPath.isEmpty() ||
+            !blobStore.getSettings().getAsBoolean(SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING.getKey(),
+                                        true);
     }
 
     /**
@@ -165,14 +166,10 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         }
     }
 
-    private boolean blobExistsAllowed(){
-        return keyPath.isEmpty() || !minimizeBlobExistsChecks;
-    }
-
     @Override
     public void writeBlob(final String blobName, final InputStream in, final long blobSize, boolean failIfAlreadyExists)
                 throws IOException {
-        if (failIfAlreadyExists && blobExistsAllowed() && blobExists(blobName)) {
+        if (failIfAlreadyExists && blobExistsCheckAllowed && blobExists(blobName)) {
             throw new FileAlreadyExistsException("blob [" + blobName + "] already exists, cannot overwrite");
         }
         SwiftPerms.exec(() -> {
