@@ -41,12 +41,12 @@ See [Snapshot And Restore](https://www.elastic.co/guide/en/elasticsearch/referen
 | max_snapshot_bytes_per_sec          | Throttles per node snapshot rate. Defaults to `20mb` per second.
 
 ## Configuration Settings
-Plugin settings to be placed in elasticsearch YAML configuration:
+Plugin settings to be placed in elasticsearch YAML configuration. Keep defaults, unless problems are detected.
 
 |  Setting                            |   Description
 |-------------------------------------|------------------------------------------------------------
-| swift.minimize_blob_exists_checks   | true (default) or false. Reduces volume of SWIFT requests to check a blob's existence.
-      
+| repository_swift.minimize_blob_exists_checks | true (default) or false. Reduces volume of SWIFT requests to check a blob's existence.
+| repository_swift..allow_caching     | true or false (default). Allow JOSS caching
 
 ## To debug in Eclipse
 Since Swift has logging dependencies you have to be careful about debugging in Eclipse.
