@@ -15,29 +15,97 @@
  */
 package org.wikimedia.elasticsearch.swift;
 
+import org.elasticsearch.common.blobstore.BlobContainer;
+import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.BlobStore;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.repositories.ESBlobStoreContainerTestCase;
 import org.javaswift.joss.client.mock.AccountMock;
+import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.swift.Swift;
 import org.junit.Before;
+import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
 import org.wikimedia.elasticsearch.swift.repositories.blobstore.SwiftBlobStore;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.NoSuchFileException;
 import java.util.Locale;
 
 public class SwiftBlobContainerTests extends ESBlobStoreContainerTestCase {
     private Swift swift;
     private AccountMock account;
+    private Settings blobStoreSettings;
 
     @Before
     public void setup() {
         this.swift = new Swift();
         this.account = new AccountMock(swift);
+        blobStoreSettings = Settings.EMPTY;
     }
 
     @Override
     protected BlobStore newBlobStore() {
         String container = randomAlphaOfLength(randomIntBetween(1, 10)).toLowerCase(Locale.ROOT);
-        return new SwiftBlobStore(Settings.EMPTY, this.account, container);
+        return new SwiftBlobStore(blobStoreSettings, this.account, container);
+    }
+
+    public void testCommandExceptionDuringRead() throws IOException {
+        try(BlobStore store = newBlobStore()) {
+            final BlobContainer container = store.blobContainer(new BlobPath());
+            expectThrows(NoSuchFileException.class, NotFoundException.class,
+                         () -> container.readBlob("foobar"));
+        }
+    }
+
+    public void testBlobExistsCheckAllowed() throws IOException {
+        blobStoreSettings = Settings.builder()
+            .put(SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING.getKey(), false)
+            .build();
+
+        try(BlobStore store = newBlobStore()) {
+            final BlobContainer container = store.blobContainer(new BlobPath().add("/path"));
+            final int blobSize = 8;
+            try(InputStream in = new ByteArrayInputStream(randomByteArrayOfLength(blobSize))){
+                container.writeBlob("blob", in, blobSize, true);
+                expectThrows(FileAlreadyExistsException.class, () -> container.writeBlob("blob", in, blobSize, true));
+            }
+        }
+    }
+
+    public void testBlobExistsCheckNotAllowed() throws IOException {
+        try(BlobStore store = newBlobStore()) {
+            final BlobContainer container = store.blobContainer(new BlobPath().add("/path"));
+            final int blobSize = 8;
+            try(InputStream in = new ByteArrayInputStream(randomByteArrayOfLength(blobSize))){
+                container.writeBlob("blob", in, blobSize, true);
+                container.writeBlob("blob", in, blobSize, true);
+            }
+        }
     }
 }
+
+//        try (BlobStore store = newBlobStore()) {
+//final String blobName = "foobar";
+//final BlobContainer container = store.blobContainer(new BlobPath());
+//        byte[] data = randomBytes(randomIntBetween(10, scaledRandomIntBetween(1024, 1 << 16)));
+//final BytesArray bytesArray = new BytesArray(data);
+//        writeBlob(container, blobName, bytesArray, true);
+//        // should not be able to overwrite existing blob
+//        expectThrows(FileAlreadyExistsException.class, () -> writeBlob(container, blobName, bytesArray, true));
+//        container.deleteBlob(blobName);
+//        writeBlob(container, blobName, bytesArray, true); // after deleting the previous blob, we should be able to write to it again
+//        }
+//
+//protected void writeBlob(final BlobContainer container, final String blobName, final BytesArray bytesArray,
+//                             boolean failIfAlreadyExists) throws IOException {
+//        try (InputStream stream = bytesArray.streamInput()) {
+//            if (randomBoolean()) {
+//                container.writeBlob(blobName, stream, bytesArray.length(), failIfAlreadyExists);
+//            } else {
+//                container.writeBlobAtomic(blobName, stream, bytesArray.length(), failIfAlreadyExists);
+//            }
+//        }
+//}

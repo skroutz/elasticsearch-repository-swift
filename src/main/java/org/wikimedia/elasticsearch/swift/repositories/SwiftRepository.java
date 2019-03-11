@@ -51,10 +51,17 @@ public class SwiftRepository extends BlobStoreRepository {
         Setting<ByteSizeValue> CHUNK_SIZE_SETTING = Setting.byteSizeSetting("chunk_size", new ByteSizeValue(5,
                 ByteSizeUnit.GB));
         Setting<Boolean> COMPRESS_SETTING = Setting.boolSetting("compress", false);
+        Setting<Boolean> MINIMIZE_BLOB_EXISTS_CHECKS_SETTING = Setting.boolSetting("repository_swift.minimize_blob_exists_checks",
+                                                                                   true,
+                                                                                    Setting.Property.NodeScope);
+        Setting<Boolean> ALLOW_CACHING_SETTING = Setting.boolSetting("repository_swift.allow_caching",
+                                                                     true,
+                                                                     Setting.Property.NodeScope);
+
+
     }
 
-    // Our blob store instance
-    private final SwiftBlobStore blobStore;
+
 
     // Base path for blobs
     private final BlobPath basePath;
@@ -64,6 +71,9 @@ public class SwiftRepository extends BlobStoreRepository {
 
     // Are we compressing our snapshots?
     private final boolean compress;
+
+    protected final Settings settings;
+    protected final SwiftService swiftService;
 
     /**
      * Constructs new BlobStoreRepository
@@ -81,37 +91,35 @@ public class SwiftRepository extends BlobStoreRepository {
     public SwiftRepository(RepositoryMetaData metadata, Settings settings,
                            NamedXContentRegistry namedXContentRegistry, SwiftService swiftService) {
         super(metadata, settings, namedXContentRegistry);
+        this.settings = settings;
+        this.swiftService = swiftService;
+        this.chunkSize = Swift.CHUNK_SIZE_SETTING.get(metadata.settings());
+        this.compress = Swift.COMPRESS_SETTING.get(metadata.settings());
+        this.basePath = BlobPath.cleanPath();
+    }
 
-        String url = Swift.URL_SETTING.get(metadata.settings());
-        if (url == null) {
-            throw new RepositoryException(metadata.name(), "No url defined for swift repository");
-        }
+    @Override
+    protected BlobStore createBlobStore() throws Exception {
+        String username = Swift.USERNAME_SETTING.get(metadata.settings());
+        String password = Swift.PASSWORD_SETTING.get(metadata.settings());
+        String tenantName = Swift.TENANTNAME_SETTING.get(metadata.settings());
+        String authMethod = Swift.AUTHMETHOD_SETTING.get(metadata.settings());
+        String preferredRegion = Swift.PREFERRED_REGION_SETTING.get(metadata.settings());
 
         String container = Swift.CONTAINER_SETTING.get(metadata.settings());
         if (container == null) {
             throw new RepositoryException(metadata.name(), "No container defined for swift repository");
         }
 
-        String username = Swift.USERNAME_SETTING.get(metadata.settings());
-        String password = Swift.PASSWORD_SETTING.get(metadata.settings());
-        String tenantName = Swift.TENANTNAME_SETTING.get(metadata.settings());
-        String authMethod = Swift.AUTHMETHOD_SETTING.get(metadata.settings());
-        String preferredRegion = Swift.PREFERRED_REGION_SETTING.get(metadata.settings());
+        String url = Swift.URL_SETTING.get(metadata.settings());
+        if (url == null) {
+            throw new RepositoryException(metadata.name(), "No url defined for swift repository");
+        }
+
         Account account = SwiftAccountFactory.createAccount(swiftService, url, username, password, tenantName,
                 authMethod, preferredRegion);
 
-        blobStore = new SwiftBlobStore(settings, account, container);
-        this.chunkSize = Swift.CHUNK_SIZE_SETTING.get(metadata.settings());
-        this.compress = Swift.COMPRESS_SETTING.get(metadata.settings());
-        this.basePath = BlobPath.cleanPath();
-    }
-
-    /**
-     * Get the blob store
-     */
-    @Override
-    protected BlobStore blobStore() {
-        return blobStore;
+        return new SwiftBlobStore(settings, account, container);
     }
 
     /**

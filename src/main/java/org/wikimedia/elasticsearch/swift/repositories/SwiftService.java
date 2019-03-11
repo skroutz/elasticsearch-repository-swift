@@ -31,6 +31,8 @@ public class SwiftService extends AbstractLifecycleComponent {
     // The account we'll be connecting to Swift with
     private Account swiftUser;
 
+    private final boolean allowCaching;
+
     /**
      * Constructor
      * 
@@ -40,6 +42,8 @@ public class SwiftService extends AbstractLifecycleComponent {
     @Inject
     public SwiftService(Settings settings) {
         super(settings);
+        allowCaching = settings.getAsBoolean(SwiftRepository.Swift.ALLOW_CACHING_SETTING.getKey(),
+                                             true);
     }
 
     /**
@@ -116,8 +120,8 @@ public class SwiftService extends AbstractLifecycleComponent {
         conf.setUsername(username);
         conf.setPassword(password);
         conf.setAuthenticationMethod(method);
-        conf.setAllowContainerCaching(false);
-        conf.setAllowCaching(false);
+        conf.setAllowContainerCaching(allowCaching);
+        conf.setAllowCaching(allowCaching);
         conf.setPreferredRegion(preferredRegion);
         return conf;
     }

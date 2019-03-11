@@ -23,10 +23,12 @@ import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
 import org.javaswift.joss.exception.CommandException;
+import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
 import org.wikimedia.elasticsearch.swift.SwiftPerms;
+import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -46,6 +48,8 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     // The root path for blobs. Used by buildKey to build full blob names
     protected final String keyPath;
 
+    private final boolean blobExistsCheckAllowed;
+
     /**
      * Constructor
      * @param path The BlobPath to find blobs in
@@ -59,6 +63,9 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
             keyPath = keyPath + "/";
         }
         this.keyPath = keyPath;
+        this.blobExistsCheckAllowed = keyPath.isEmpty() ||
+            !blobStore.getSettings().getAsBoolean(SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING.getKey(),
+                                        true);
     }
 
     /**
@@ -86,7 +93,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         });
 
         if (ex != null) {
-            throw new IOException("Requested blob was not found: " + blobName, ex);
+            throw new NoSuchFileException(blobName, null, "Requested blob was not found " + ex);
         }
     }
 
@@ -134,16 +141,6 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         return keyPath + blobName;
     }
 
-    @Override
-    public void move(String sourceBlobname, String destinationBlobname) {
-
-        String source = buildKey(sourceBlobname);
-        String target = buildKey(destinationBlobname);
-        if (blobExists(sourceBlobname)) {
-            blobStore.moveBlobStorage(source, target);
-        }
-    }
-
     /**
      * Fetch a given blob into a BufferedInputStream
      * @param blobName The blob name to read
@@ -151,21 +148,28 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      */
     @Override
     public InputStream readBlob(final String blobName) throws IOException {
-        final InputStream is = SwiftPerms.exec(
-                (PrivilegedAction<InputStream>) () -> new BufferedInputStream(
-                        blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
-                blobStore.bufferSizeInBytes()));
+        try {
+            final InputStream is = SwiftPerms.exec(
+                    (PrivilegedAction<InputStream>) () -> new BufferedInputStream(
+                            blobStore.swift().getObject(buildKey(blobName)).downloadObjectAsInputStream(),
+                            blobStore.bufferSizeInBytes()));
 
-        if (null == is) {
-            throw new NoSuchFileException("Blob object [" + blobName + "] not found.");
+            if (null == is) {
+                throw new NoSuchFileException("Blob object [" + blobName + "] not found.");
+            }
+
+            return is;
+        } catch (NotFoundException e){
+            NoSuchFileException e2 = new NoSuchFileException("Blob object [" + blobName + "] not found.");
+            e2.initCause(e);
+            throw e2;
         }
-
-        return is;
     }
 
     @Override
-    public void writeBlob(final String blobName, final InputStream in, final long blobSize) throws IOException {
-        if (blobExists(blobName)) {
+    public void writeBlob(final String blobName, final InputStream in, final long blobSize, boolean failIfAlreadyExists)
+                throws IOException {
+        if (failIfAlreadyExists && blobExistsCheckAllowed && blobExists(blobName)) {
             throw new FileAlreadyExistsException("blob [" + blobName + "] already exists, cannot overwrite");
         }
         SwiftPerms.exec(() -> {
