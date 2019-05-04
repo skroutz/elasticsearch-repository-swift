@@ -16,6 +16,7 @@
 
 package org.wikimedia.elasticsearch.swift;
 
+import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.env.Environment;
@@ -34,7 +35,6 @@ import java.util.Map;
  * Our base plugin stuff.
  */
 public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
-
     // overridable for tests
     protected SwiftService createStorageService(Settings settings) {
         return new SwiftService(settings);
@@ -46,8 +46,15 @@ public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
                 (metadata) -> new SwiftRepository(metadata, env.settings(), namedXContentRegistry, createStorageService(env.settings())));
     }
 
+    @Override
     public List<String> getSettingsFilter() {
         return Collections.singletonList(
                 SwiftRepository.Swift.PASSWORD_SETTING.getKey());
+    }
+
+    @Override
+    public List<Setting<?>> getSettings() {
+        return Arrays.asList(SwiftRepository.Swift.MINIMIZE_BLOB_EXISTS_CHECKS_SETTING,
+                             SwiftRepository.Swift.ALLOW_CACHING_SETTING);
     }
 }

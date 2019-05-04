@@ -22,10 +22,10 @@ import java.util.Collection;
 import org.elasticsearch.common.blobstore.BlobContainer;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.BlobStore;
-import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
+import org.javaswift.joss.exception.CommandException;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
 import org.javaswift.joss.model.DirectoryOrObject;
@@ -35,12 +35,14 @@ import org.wikimedia.elasticsearch.swift.SwiftPerms;
 /**
  * Our blob store
  */
-public class SwiftBlobStore extends AbstractComponent implements BlobStore {
+public class SwiftBlobStore implements BlobStore {
     // How much to buffer our blobs by
     private final int bufferSizeInBytes;
 
     // Our Swift container. This is important.
     private final Container swift;
+
+    private final Settings settings;
 
     /**
      * Constructor. Sets up the container mostly.
@@ -49,7 +51,7 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
      * @param container swift container
      */
     public SwiftBlobStore(Settings settings, final Account auth, final String container) {
-        super(settings);
+        this.settings = settings;
         this.bufferSizeInBytes = (int)settings.getAsBytesSize("buffer_size", new ByteSizeValue(100, ByteSizeUnit.KB)).getBytes();
         swift = SwiftPerms.exec(() -> {
             Container swift = auth.getContainer(container);
@@ -58,19 +60,6 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
                 swift.makePublic();
             }
             return swift;
-        });
-    }
-
-    public boolean moveBlobStorage(final String sourceblob, final String destinationblob){
-        return SwiftPerms.exec(() -> {
-            StoredObject sourceObject = swift.getObject(sourceblob);
-            if(sourceObject.exists()) {
-               StoredObject newObject = swift.getObject(destinationblob);
-               sourceObject.copyObject(swift, newObject);
-               sourceObject.delete();
-               return true;
-            }
-            return false;
         });
     }
 
@@ -103,18 +92,24 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
      */
     @Override
     public void delete(final BlobPath path) {
-        SwiftPerms.exec((PrivilegedAction<Void>) () -> {
-            String keyPath = path.buildAsString();
-            if (keyPath.isEmpty() || keyPath.endsWith("/")) {
-                deleteByPrefix(keyPath.isEmpty() ? swift.listDirectory() : swift.listDirectory(keyPath, '/', "", 100));
-            } else {
-                StoredObject obj = swift.getObject(keyPath);
-                if (obj.exists()) {
-                    obj.delete();
+        try {
+            SwiftPerms.exec((PrivilegedAction<Void>) () -> {
+                String keyPath = path.buildAsString();
+                if (keyPath.isEmpty() || keyPath.endsWith("/")) {
+                    deleteByPrefix(keyPath.isEmpty() ? swift.listDirectory() : swift.listDirectory(keyPath, '/', "", 100));
+                } else {
+                    StoredObject obj = swift.getObject(keyPath);
+                    if (obj.exists()) {
+                        obj.delete();
+                    }
                 }
-            }
-            return null;
-        });
+                return null;
+            });
+        } catch (CommandException e) {
+            if (e.getMessage() != null)
+                throw e;
+            throw new CommandException(e.toString(), e);
+        }
     }
 
     private void deleteByPrefix(Collection<DirectoryOrObject> directoryOrObjects) {
@@ -132,5 +127,9 @@ public class SwiftBlobStore extends AbstractComponent implements BlobStore {
      */
     @Override
     public void close() {
+    }
+
+    protected Settings getSettings() {
+        return settings;
     }
 }
