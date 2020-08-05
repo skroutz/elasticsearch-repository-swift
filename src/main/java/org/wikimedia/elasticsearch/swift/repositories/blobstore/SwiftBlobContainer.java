@@ -71,7 +71,6 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
     /**
      * Does a blob exist? Self-explanatory.
      */
-    @Override
     public boolean blobExists(final String blobName) {
         return SwiftPerms.exec(() -> blobStore.swift().getObject(buildKey(blobName)).exists());
     }
