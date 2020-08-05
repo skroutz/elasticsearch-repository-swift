@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        elasticsearchVersion = '6.6.0'
+        elasticsearchVersion = '7.7.0'
     }
 
     repositories {
