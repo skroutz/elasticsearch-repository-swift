@@ -17,6 +17,7 @@
 package org.wikimedia.elasticsearch.swift.repositories;
 
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
+import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.BlobStore;
 import org.elasticsearch.common.inject.Inject;
@@ -86,11 +87,14 @@ public class SwiftRepository extends BlobStoreRepository {
      *            an instance of NamedXContentRegistry
      * @param swiftService
      *            an instance of SwiftService
+     * @param clusterService
+     *            an instance of ClusterService
      */
     @Inject
     public SwiftRepository(RepositoryMetaData metadata, Settings settings,
-                           NamedXContentRegistry namedXContentRegistry, SwiftService swiftService) {
-        super(metadata, settings, namedXContentRegistry);
+                           NamedXContentRegistry namedXContentRegistry, SwiftService swiftService,
+                           ClusterService clusterService) {
+        super(metadata, settings, namedXContentRegistry, clusterService);
         this.settings = settings;
         this.swiftService = swiftService;
         this.chunkSize = Swift.CHUNK_SIZE_SETTING.get(metadata.settings());

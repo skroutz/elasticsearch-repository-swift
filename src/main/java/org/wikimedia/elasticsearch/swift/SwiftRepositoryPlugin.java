@@ -19,6 +19,7 @@ package org.wikimedia.elasticsearch.swift;
 import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.plugins.RepositoryPlugin;
@@ -41,9 +42,11 @@ public class SwiftRepositoryPlugin extends Plugin implements RepositoryPlugin {
     }
 
     @Override
-    public Map<String, Repository.Factory> getRepositories(Environment env, NamedXContentRegistry namedXContentRegistry) {
+    public Map<String, Repository.Factory> getRepositories(Environment env, NamedXContentRegistry namedXContentRegistry,
+                                                           ClusterService clusterService) {
         return Collections.singletonMap(SwiftRepository.TYPE,
-                (metadata) -> new SwiftRepository(metadata, env.settings(), namedXContentRegistry, createStorageService(env.settings())));
+                (metadata) -> new SwiftRepository(metadata, env.settings(), namedXContentRegistry, createStorageService(env.settings()),
+                                                  clusterService));
     }
 
     @Override
