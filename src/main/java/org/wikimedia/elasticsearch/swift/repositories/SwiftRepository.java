@@ -94,7 +94,7 @@ public class SwiftRepository extends BlobStoreRepository {
     public SwiftRepository(RepositoryMetaData metadata, Settings settings,
                            NamedXContentRegistry namedXContentRegistry, SwiftService swiftService,
                            ClusterService clusterService) {
-        super(metadata, settings, namedXContentRegistry, clusterService);
+        super(metadata, Swift.COMPRESS_SETTING.get(metadata.settings()), namedXContentRegistry, clusterService);
         this.settings = settings;
         this.swiftService = swiftService;
         this.chunkSize = Swift.CHUNK_SIZE_SETTING.get(metadata.settings());

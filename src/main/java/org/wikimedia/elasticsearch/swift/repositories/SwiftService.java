@@ -35,20 +35,19 @@ public class SwiftService extends AbstractLifecycleComponent {
 
     /**
      * Constructor
-     * 
+     *
      * @param settings
      *            Settings for our repository. Injected.
      */
     @Inject
     public SwiftService(Settings settings) {
-        super(settings);
         allowCaching = settings.getAsBoolean(SwiftRepository.Swift.ALLOW_CACHING_SETTING.getKey(),
                                              true);
     }
 
     /**
      * Create a Swift account object and connect it to Swift
-     * 
+     *
      * @param url
      *            The auth url (eg: localhost:8080/auth/v1.0/)
      * @param username
