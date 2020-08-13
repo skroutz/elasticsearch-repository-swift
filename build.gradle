@@ -32,7 +32,7 @@ ext {
 }
 
 group = 'org.wikimedia.elasticsearch.swift'
-version = '3.0.0-es' + elasticsearchVersion
+version = "${elasticsearchVersion}.1"
 description = """OpenStack Swift repository plugin for Elasticsearch"""
 
 esplugin {
