@@ -16,12 +16,10 @@
 
 package org.wikimedia.elasticsearch.swift.repositories.blobstore;
 
-import java.security.PrivilegedAction;
-import java.util.Collection;
-
 import org.elasticsearch.common.blobstore.BlobContainer;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.BlobStore;
+import org.elasticsearch.common.blobstore.DeleteResult;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
@@ -31,6 +29,8 @@ import org.javaswift.joss.model.Container;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.StoredObject;
 import org.wikimedia.elasticsearch.swift.SwiftPerms;
+
+import java.util.Collection;
 
 /**
  * Our blob store
@@ -89,37 +89,57 @@ public class SwiftBlobStore implements BlobStore {
     /**
      * Delete an arbitrary BlobPath from our store.
      * @param path The blob path to delete
+     * @return deleteResult The delete result
      */
-    @Override
-    public void delete(final BlobPath path) {
+    public DeleteResult delete(final BlobPath path) {
+        DeleteResult deleteResult;
         try {
-            SwiftPerms.exec((PrivilegedAction<Void>) () -> {
+            deleteResult = SwiftPerms.exec(() -> {
                 String keyPath = path.buildAsString();
+                long bytesDeleted = 0;
+                long blobsDeleted = 0;
+
                 if (keyPath.isEmpty() || keyPath.endsWith("/")) {
-                    deleteByPrefix(keyPath.isEmpty() ? swift.listDirectory() : swift.listDirectory(keyPath, '/', "", 100));
+                    return deleteByPrefix(keyPath.isEmpty() ? swift.listDirectory() : swift.listDirectory(keyPath, '/', "", 100));
                 } else {
                     StoredObject obj = swift.getObject(keyPath);
                     if (obj.exists()) {
+                        blobsDeleted += 1;
+                        bytesDeleted += obj.getContentLength();
                         obj.delete();
                     }
                 }
-                return null;
+                return new DeleteResult(blobsDeleted, bytesDeleted);
             });
         } catch (CommandException e) {
             if (e.getMessage() != null)
                 throw e;
             throw new CommandException(e.toString(), e);
         }
+
+        return deleteResult;
     }
 
-    private void deleteByPrefix(Collection<DirectoryOrObject> directoryOrObjects) {
+    private DeleteResult deleteByPrefix(Collection<DirectoryOrObject> directoryOrObjects) {
+        long blobsDeleted = 0;
+        long bytesDeleted = 0;
+        DeleteResult dr;
+
         for (DirectoryOrObject directoryOrObject : directoryOrObjects) {
             if (directoryOrObject.isObject()) {
-                directoryOrObject.getAsObject().delete();
+
+                StoredObject obj = directoryOrObject.getAsObject();
+                bytesDeleted += obj.getContentLength();
+                blobsDeleted += 1;
+                obj.delete();
             } else {
-                deleteByPrefix(swift.listDirectory(directoryOrObject.getAsDirectory()));
+                dr = deleteByPrefix(swift.listDirectory(directoryOrObject.getAsDirectory()));
+                blobsDeleted += dr.blobsDeleted();
+                bytesDeleted += dr.bytesDeleted();
             }
         }
+
+        return new DeleteResult(blobsDeleted, bytesDeleted);
     }
 
     /**

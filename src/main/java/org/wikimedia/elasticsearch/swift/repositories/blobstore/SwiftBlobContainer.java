@@ -19,6 +19,7 @@ package org.wikimedia.elasticsearch.swift.repositories.blobstore;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.blobstore.BlobMetaData;
 import org.elasticsearch.common.blobstore.BlobPath;
+import org.elasticsearch.common.blobstore.DeleteResult;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
 import org.elasticsearch.common.collect.MapBuilder;
@@ -97,6 +98,17 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         }
     }
 
+
+    /**
+     * Deletes this container and all its contents from the repository.
+     *
+     * @return delete result
+     * @throws IOException on failure
+     */
+    @Override
+    public DeleteResult delete() throws IOException {
+        return blobStore.delete(this.path());
+    }
 
     @Override
     public void deleteBlobsIgnoringIfNotExists(List<String> blobNames) throws IOException {
