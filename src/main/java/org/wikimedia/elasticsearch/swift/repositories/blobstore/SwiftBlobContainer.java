@@ -19,6 +19,7 @@ package org.wikimedia.elasticsearch.swift.repositories.blobstore;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.blobstore.BlobMetaData;
 import org.elasticsearch.common.blobstore.BlobPath;
+import org.elasticsearch.common.blobstore.BlobContainer;
 import org.elasticsearch.common.blobstore.DeleteResult;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
@@ -151,6 +152,31 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
                 }
             }
             return blobsBuilder.immutableMap();
+        });
+    }
+
+    @Override
+    public Map<String, BlobContainer> children() throws IOException {
+        return SwiftPerms.exec(() -> {
+            MapBuilder<String, BlobContainer> blobContainerBuilder = MapBuilder.newMapBuilder();
+            String path = path().buildAsString();
+            Collection<DirectoryOrObject> files = blobStore.swift().listDirectory(new Directory(path, '/'));
+
+            if (files != null && !files.isEmpty()) {
+                for (DirectoryOrObject directory : files) {
+                    String name = directory.getName();
+                    String indexKey = name.substring(keyPath.length(), name.length() - 1);
+
+                    if (! blobContainerBuilder.containsKey(indexKey)) {
+                        BlobPath p = new BlobPath();
+                        p = p.add(directory.getName());
+                        blobContainerBuilder.put(indexKey, new SwiftBlobContainer(p, blobStore));
+                    }
+
+                }
+            }
+
+            return blobContainerBuilder.immutableMap();
         });
     }
 
