@@ -96,6 +96,23 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
         }
     }
 
+
+    @Override
+    public void deleteBlobsIgnoringIfNotExists(List<String> blobNames) throws IOException {
+      if (blobNames.isEmpty()) {
+        return;
+      }
+
+      for(String blobName : blobNames) {
+        try {
+          deleteBlob(blobName);
+        } catch (NoSuchFileException e) {
+        } catch (Exception e) {
+          throw new IOException("Exception during bulk delete", e);
+        }
+      }
+    }
+
     /**
      * Get the blobs matching a given prefix
      * @param blobNamePrefix The prefix to look for blobs with
