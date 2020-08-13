@@ -81,7 +81,6 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * Delete a blob. Straightforward.
      * @param blobName A blob to delete
      */
-    @Override
     public void deleteBlob(final String blobName) throws IOException {
         CommandException ex = SwiftPerms.exec(() -> {
             StoredObject object = blobStore.swift().getObject(buildKey(blobName));
