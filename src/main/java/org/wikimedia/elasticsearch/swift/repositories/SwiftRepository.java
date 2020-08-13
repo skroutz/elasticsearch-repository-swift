@@ -141,12 +141,4 @@ public class SwiftRepository extends BlobStoreRepository {
     protected ByteSizeValue chunkSize() {
         return chunkSize;
     }
-
-    /**
-     * Are we compressing our snapshots?
-     */
-    @Override
-    protected boolean isCompress() {
-        return compress;
-    }
 }
