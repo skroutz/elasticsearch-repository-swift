@@ -233,4 +233,9 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
             return null;
         });
     }
+
+    @Override
+    public void writeBlobAtomic(String blobName, InputStream inputStream, long blobSize, boolean failIfAlreadyExists) throws IOException {
+        writeBlob(blobName, inputStream, blobSize, failIfAlreadyExists);
+    }
 }
