@@ -16,12 +16,12 @@
 
 package org.wikimedia.elasticsearch.swift.repositories.blobstore;
 
-import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.blobstore.BlobMetaData;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.javaswift.joss.exception.CommandException;
 import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.model.Directory;
@@ -37,6 +37,8 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
 import java.security.PrivilegedAction;
 import java.util.Collection;
+import java.util.Map;
+import java.util.List;
 
 /**
  * Swift's implementation of the AbstractBlobContainer
@@ -119,15 +121,16 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * @return blobs metadata
      */
     @Override
-    public ImmutableMap<String, BlobMetaData> listBlobsByPrefix(@Nullable final String blobNamePrefix) {
+    public Map<String, BlobMetaData> listBlobsByPrefix(@Nullable final String blobNamePrefix) {
         return SwiftPerms.exec(() -> {
-            ImmutableMap.Builder<String, BlobMetaData> blobsBuilder = ImmutableMap.builder();
+            MapBuilder<String, BlobMetaData> blobsBuilder = MapBuilder.newMapBuilder();
             Collection<DirectoryOrObject> files;
             if (blobNamePrefix != null) {
                 files = blobStore.swift().listDirectory(new Directory(buildKey(blobNamePrefix), '/'));
             } else {
                 files = blobStore.swift().listDirectory(new Directory(keyPath, '/'));
             }
+
             if (files != null && !files.isEmpty()) {
                 for (DirectoryOrObject object : files) {
                     if (object.isObject()) {
@@ -136,7 +139,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
                     }
                 }
             }
-            return blobsBuilder.build();
+            return blobsBuilder.immutableMap();
         });
     }
 
@@ -144,7 +147,7 @@ public class SwiftBlobContainer extends AbstractBlobContainer {
      * Get all the blobs
      */
     @Override
-    public ImmutableMap<String, BlobMetaData> listBlobs() {
+    public Map<String, BlobMetaData> listBlobs() {
         return listBlobsByPrefix(null);
     }
 
