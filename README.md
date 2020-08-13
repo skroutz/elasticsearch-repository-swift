@@ -1,13 +1,25 @@
 Swift repository plugin for Elasticsearch
 =========================================
 
+***This is an experimental version the elasticsearch-repository-swift to support ES v7.7.0. Use it at your own risk.***
+
 In order to install the plugin, simply run: `bin/plugin install org.wikimedia.elasticsearch.swift/swift-repository-plugin/<version>`.
 
-For Elasticsearch versions prior to 5.x, please refer to https://github.com/wikimedia/search-repository-swift.
+For Elasticsearch versions prior to 7.7.0, please refer to https://github.com/wikimedia/search-repository-swift.
 
-Starting with version 3.0.0 of this plugin the plugin is developed on master, and compiled against all Elasticsearch versions in branches.
+Starting with version 7.7.0.X of this plugin the plugin is developed on `skroutz`, and compiled against the each needed version locally by hand.
 
-The resulting versioning schema looks like this: 3.0.0-es5.2.0, where the plugin version is followed by the ES version it is compatible with. A single plugin version will have several ES compatible versions.   
+The resulting versioning schema looks like this: `ES_MAJOR.ES_MINOR.ES_PATCH.REVISION`
+
+## Building the plugin
+
+The plugin needs a JDK 14 installation.
+
+Either fetch it from you package manager or download it from the [official website](https://jdk.java.net/14/)
+
+To build the plugin run `JAVA_HOME=<path_to_jdk_14> ./gradlew build`
+
+NOTE: Some tests will be failing though they didn't provide any serious coverage either way.
 
 ## Create Repository
 ```
@@ -46,18 +58,4 @@ Plugin settings to be placed in elasticsearch YAML configuration. Keep defaults,
 |  Setting                            |   Description
 |-------------------------------------|------------------------------------------------------------
 | repository_swift.minimize_blob_exists_checks | true (default) or false. Reduces volume of SWIFT requests to check a blob's existence.
-| repository_swift..allow_caching     | true or false (default). Allow JOSS caching
-
-## To debug in Eclipse
-Since Swift has logging dependencies you have to be careful about debugging in Eclipse.
-
-1.  Import this project into Eclipse using the maven connector.  Do no import the main Elasticsearch code.
-2.  Create a new java application debug configuration and set it to run ElasticsearchF.
-3.  Go to the Classpath tab
-4.  Click on Maven Dependiences
-5.  Click on Advanced
-6.  Click Add Folder
-7.  Click ok
-8.  Expand the tree to find <project-name>/src/test/resources
-9.  Click ok
-10. Click debug
+| repository_swift.allow_caching     | true or false (default). Allow JOSS caching
