@@ -130,7 +130,7 @@ public class SwiftRepository extends BlobStoreRepository {
      * Get the base blob path
      */
     @Override
-    protected BlobPath basePath() {
+    public BlobPath basePath() {
         return basePath;
     }
 
