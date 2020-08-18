@@ -58,9 +58,9 @@ dependencies {
     runtime group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: jacksonmapperVersion
     runtime group: 'commons-lang', name: 'commons-lang', version: commonslangVersion
     runtime group: 'commons-io', name: 'commons-io', version: commonsioVersion
+
     testCompile group: 'junit', name: 'junit', version: junitVersion
     testCompile group: 'org.elasticsearch.test', name: 'framework', version: elasticsearchVersion
-    testRuntimeOnly group: 'org.apache.logging.log4j', name: 'log4j-1.2-api', version: log4jVersion
 }
 
 dependencyLicenses.enabled = false

@@ -19,7 +19,9 @@ Either fetch it from you package manager or download it from the [official websi
 
 To build the plugin run `JAVA_HOME=<path_to_jdk_14> ./gradlew build`
 
-NOTE: Some tests will be failing though they didn't provide any serious coverage either way.
+To run the tests run `JAVA_HOME=<path_to_jdk_14> ./gradlew test`
+
+A test suite run requires proper Swift account and container settings on an existing Swift installation.
 
 ## Create Repository
 ```

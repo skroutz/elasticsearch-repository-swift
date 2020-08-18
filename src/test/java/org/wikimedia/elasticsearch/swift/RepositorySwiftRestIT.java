@@ -16,15 +16,19 @@
 
 package org.wikimedia.elasticsearch.swift;
 
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.annotations.Name;
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 import org.elasticsearch.test.rest.yaml.ClientYamlTestCandidate;
 import org.elasticsearch.test.rest.yaml.ESClientYamlSuiteTestCase;
+import org.junit.runner.RunWith;
 
 /**
  * This IT is necessary for the gradle build to pass.
  * Test cases are yaml files residing under test resources.
  */
+
+@RunWith(RandomizedRunner.class)
 public class RepositorySwiftRestIT extends ESClientYamlSuiteTestCase {
 
     public RepositorySwiftRestIT(@Name("yml") ClientYamlTestCandidate testCandidate) {

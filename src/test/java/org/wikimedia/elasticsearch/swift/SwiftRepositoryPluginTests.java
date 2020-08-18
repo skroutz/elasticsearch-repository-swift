@@ -16,6 +16,7 @@
 
 package org.wikimedia.elasticsearch.swift;
 
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.test.ESIntegTestCase;
@@ -25,6 +26,7 @@ import org.javaswift.joss.client.mock.StoredObjectMock;
 import org.javaswift.joss.instructions.UploadInstructions;
 import org.javaswift.joss.swift.Swift;
 import org.junit.Before;
+import org.junit.runner.RunWith;
 import org.wikimedia.elasticsearch.swift.repositories.SwiftRepository;
 
 import java.util.Collection;
@@ -34,6 +36,7 @@ import java.util.List;
 /**
  * Created by synhershko on 10/07/2017.
  */
+@RunWith(RandomizedRunner.class)
 public class SwiftRepositoryPluginTests extends ESIntegTestCase {
     /**
      * Returns a collection of plugins that should be loaded on each node.
